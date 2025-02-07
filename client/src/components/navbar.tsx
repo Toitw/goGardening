@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Navbar() {
-  const { logout } = useAuth();
+  const { logoutMutation } = useAuth();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t md:top-0 md:bottom-auto md:border-b md:border-t-0">
@@ -21,7 +21,7 @@ export function Navbar() {
           <Link href="/settings">
             <Button variant="ghost">Settings</Button>
           </Link>
-          <Button variant="ghost" onClick={logout}>Logout</Button>
+          <Button variant="ghost" onClick={() => logoutMutation.mutate()}>Logout</Button>
         </div>
       </div>
     </nav>
