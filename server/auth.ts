@@ -2,7 +2,6 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
-import bcryptjs from "bcryptjs";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
@@ -10,15 +9,6 @@ declare global {
   namespace Express {
     interface User extends SelectUser {}
   }
-}
-
-async function hashPassword(password: string) {
-  return bcryptjs.hash(password, 10);
-}
-
-async function comparePasswords(supplied: string, stored: string) {
-  if (!stored) return false;
-  return bcryptjs.compare(supplied, stored);
 }
 
 export function setupAuth(app: Express) {
@@ -45,7 +35,7 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "Invalid username or password" });
         }
 
-        const isValid = await comparePasswords(password, user.password);
+        const isValid = await storage.verifyPassword(password, user.password);
         if (!isValid) {
           return done(null, false, { message: "Invalid username or password" });
         }

@@ -4,6 +4,10 @@ import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 
 export const storage = {
+  async verifyPassword(password: string, hashedPassword: string) {
+    return bcryptjs.compare(password, hashedPassword);
+  },
+
   async createUser({ username, password }: { username: string; password: string }) {
     const hashedPassword = await bcryptjs.hash(password, 10);
     const [user] = await db.insert(users).values({
