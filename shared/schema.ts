@@ -22,13 +22,24 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
 }).extend({
+  username: z.string()
+    .min(3, "Username must be at least 3 characters long")
+    .max(30, "Username cannot exceed 30 characters")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters long")
+    .max(100, "Password cannot exceed 100 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
   location: z.object({
     lat: z.number(),
     lng: z.number(),
     address: z.string(),
   }).optional(),
   gardenSpace: z.string().optional(),
-  sunlightHours: z.number().int().min(0).max(24).optional(),
+  sunlightHours: z.number().int().min(0, "Sunlight hours must be at least 0").max(24, "Sunlight hours cannot exceed 24").optional(),
 });
 
 export const insertGardenSchema = createInsertSchema(gardens).pick({
