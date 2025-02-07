@@ -78,9 +78,16 @@ export default function Onboarding() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <Button type="button" onClick={requestLocation} variant="outline" className="w-full">
-                Detect Location
-              </Button>
+              <div className="space-y-2">
+                <Button type="button" onClick={requestLocation} variant="outline" className="w-full">
+                  Detect Location
+                </Button>
+                {form.watch("location.address") && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    📍 {form.watch("location.address")}
+                  </p>
+                )}
+              </div>
               <FormField
                 control={form.control}
                 name="gardenSpace"
