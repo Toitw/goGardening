@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Settings() {
   const { data: user } = useQuery({
@@ -14,7 +15,7 @@ export default function Settings() {
   return (
     <div className="pb-20 md:pb-0 md:pt-16 p-4">
       <h1 className="text-2xl font-bold mb-4">Settings</h1>
-      
+
       <Card className="mb-4">
         <CardHeader>
           <CardTitle>Garden Details</CardTitle>

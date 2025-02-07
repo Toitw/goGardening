@@ -21,6 +21,9 @@ export const gardens = pgTable("gardens", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  sunlightHours: true,
+  location: true,
+  gardenSpace: true,
 }).extend({
   username: z.string()
     .min(3, "Username must be at least 3 characters long")
@@ -39,7 +42,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
     address: z.string(),
   }).optional(),
   gardenSpace: z.string().optional(),
-  sunlightHours: z.number().int().min(0, "Sunlight hours must be at least 0").max(24, "Sunlight hours cannot exceed 24").optional(),
+  sunlightHours: z.number().min(0).max(24),
 });
 
 export const insertGardenSchema = createInsertSchema(gardens).pick({
