@@ -14,12 +14,12 @@ declare global {
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   };
 
