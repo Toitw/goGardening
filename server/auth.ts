@@ -54,16 +54,22 @@ export function setupAuth(app: Express) {
         const user = await storage.getUserByUsername(username);
         console.log('Found user:', user);
         if (!user) {
+          console.log('User not found');
           return done(null, false, { message: "Invalid username or password" });
         }
 
+        console.log('Verifying password...');
         const isValid = await storage.verifyPassword(password, user.password);
+        console.log('Password valid:', isValid);
         if (!isValid) {
+          console.log('Invalid password');
           return done(null, false, { message: "Invalid username or password" });
         }
 
+        console.log('Authentication successful');
         return done(null, user);
       } catch (error) {
+        console.error('Authentication error:', error);
         return done(error);
       }
     }),
@@ -114,15 +120,19 @@ export function setupAuth(app: Express) {
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
       if (err) {
-        return res.status(500).json({ message: "Internal server error" });
+        console.error('Login error:', err);
+        return res.status(500).json({ message: err.message || "Internal server error" });
       }
       if (!user) {
+        console.log('Login failed:', info?.message);
         return res.status(401).json({ message: info?.message || "Invalid credentials" });
       }
       req.login(user, (err) => {
         if (err) {
-          return res.status(500).json({ message: "Error during login" });
+          console.error('Session error:', err);
+          return res.status(500).json({ message: err.message || "Error during login" });
         }
+        console.log('Login successful for user:', user.username);
         return res.json(user);
       });
     })(req, res, next);
