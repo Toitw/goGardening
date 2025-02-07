@@ -59,10 +59,14 @@ export default function Onboarding() {
               `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
             );
             const data = await response.json();
+            const city = data.address?.city || 
+                        data.address?.town || 
+                        data.address?.village || 
+                        'Unknown location';
             form.setValue("location", {
               lat,
               lng,
-              address: data.display_name,
+              address: city,
             });
           } catch (error) {
             form.setValue("location", {
