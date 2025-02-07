@@ -48,36 +48,52 @@ export default function Onboarding() {
     }
   };
 
-  const requestLocation = () => {
+  const requestLocation = async () => {
     if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-            );
-            const data = await response.json();
-            const city = data.address?.city || 
-                        data.address?.town || 
-                        data.address?.village || 
-                        'Unknown location';
-            form.setValue("location", {
-              lat,
-              lng,
-              address: city,
-            });
-          } catch (error) {
-            form.setValue("location", {
-              lat,
-              lng,
-              address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-            });
-          }
-        },
-        () => {
-          toast({
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+        
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        console.log("Location detected:", { lat, lng });
+        
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+          );
+          const data = await response.json();
+          console.log("Geocoding response:", data);
+          
+          const city = data.address?.city || 
+                      data.address?.town || 
+                      data.address?.village || 
+                      'Unknown location';
+                      
+          console.log("Setting location with city:", city);
+          
+          form.setValue("location", {
+            lat,
+            lng,
+            address: city,
+          });
+          
+          // Force form update
+          form.trigger("location");
+        } catch (error) {
+          console.error("Geocoding error:", error);
+          form.setValue("location", {
+            lat,
+            lng,
+            address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+          });
+          form.trigger("location");
+        }
+      } catch (error) {
+        console.error("Location error:", error);
+        toast({
             title: "Error",
             description: "Failed to get location",
             variant: "destructive",
@@ -100,11 +116,15 @@ export default function Onboarding() {
                 <Button type="button" onClick={requestLocation} variant="outline" className="w-full">
                   Detect Location
                 </Button>
-                {form.watch("location.address") && (
-                  <p className="text-sm text-muted-foreground text-center">
-                    📍 {form.watch("location.address")}
-                  </p>
-                )}
+                <div className="mt-2">
+                  {form.getValues("location.address") ? (
+                    <p className="text-sm text-muted-foreground text-center">
+                      📍 {form.getValues("location.address")}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">No location detected</p>
+                  )}
+                </div>
               </div>
               <FormField
                 control={form.control}
