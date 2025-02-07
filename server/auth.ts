@@ -12,8 +12,7 @@ declare global {
 }
 
 export function setupAuth(app: Express) {
-  import memorystore from 'memorystore';
-  const MemoryStore = memorystore(session);
+  const MemoryStore = require('memorystore')(session);
   
   const sessionSettings: session.SessionOptions = {
     secret: 'your-secret-key',
