@@ -94,12 +94,11 @@ export default function Onboarding() {
       } catch (error) {
         console.error("Location error:", error);
         toast({
-            title: "Error",
-            description: "Failed to get location",
-            variant: "destructive",
-          });
-        }
-      );
+          title: "Error",
+          description: "Failed to get location",
+          variant: "destructive",
+        });
+      }
     }
   };
 
