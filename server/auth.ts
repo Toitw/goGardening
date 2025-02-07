@@ -14,6 +14,15 @@ declare global {
 }
 
 export function setupAuth(app: Express) {
+  // Add request logging middleware
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+      body: req.body,
+      headers: req.headers
+    });
+    next();
+  });
+
   const MemoryStoreInstance = MemoryStore(session);
   
   const sessionSettings: session.SessionOptions = {
@@ -41,7 +50,9 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log('Authenticating user:', username);
         const user = await storage.getUserByUsername(username);
+        console.log('Found user:', user);
         if (!user) {
           return done(null, false, { message: "Invalid username or password" });
         }
@@ -58,9 +69,13 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log('Serializing user:', user);
+    done(null, user.id);
+  });
 
   passport.deserializeUser(async (id: number, done) => {
+    console.log('Deserializing user:', id);
     try {
       const user = await storage.getUser(id);
       if (!user) {
