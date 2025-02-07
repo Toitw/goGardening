@@ -1,6 +1,10 @@
 import { users, gardens, type User, type Garden, type InsertUser, type InsertGarden } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -9,9 +13,19 @@ export interface IStorage {
   getGarden(userId: number): Promise<Garden | undefined>;
   createGarden(garden: InsertGarden): Promise<Garden>;
   updateGarden(id: number, gridData: any): Promise<Garden>;
+  sessionStore: session.Store;
 }
 
 export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
+    });
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
