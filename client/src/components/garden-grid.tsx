@@ -8,12 +8,18 @@ interface GardenGridProps {
 }
 
 export function GardenGrid({ gridData, onCellClick }: GardenGridProps) {
+  const columns = Math.ceil(Math.sqrt(gridData.length));
+
   return (
-    <div className="grid grid-cols-6 gap-1 p-4">
-      {Array.from({ length: 36 }).map((_, index) => {
-        const x = Math.floor(index / 6);
-        const y = index % 6;
-        const plant = gridData[index];
+    <div 
+      className="grid gap-1 p-4" 
+      style={{
+        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+      }}
+    >
+      {gridData.map((plant, index) => {
+        const x = Math.floor(index / columns);
+        const y = index % columns;
 
         return (
           <Card
