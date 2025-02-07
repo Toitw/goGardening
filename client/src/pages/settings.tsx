@@ -9,6 +9,7 @@ export default function Settings() {
   });
 
   const { toast } = useToast();
+  const { logoutMutation } = useAuth();
 
   return (
     <div className="pb-20 md:pb-0 md:pt-16 p-4">
@@ -47,6 +48,14 @@ export default function Settings() {
         }}
       >
         Edit Garden Details
+      </Button>
+
+      <Button
+        variant="destructive"
+        className="w-full mt-4"
+        onClick={() => logoutMutation.mutate()}
+      >
+        Logout
       </Button>
     </div>
   );
