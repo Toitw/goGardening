@@ -1,9 +1,11 @@
+
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import MemoryStore from 'memorystore';
 
 declare global {
   namespace Express {
@@ -12,14 +14,13 @@ declare global {
 }
 
 export function setupAuth(app: Express) {
-  import('memorystore').then((memorystore) => {
-    const MemoryStore = memorystore.default(session);
-    
-    const sessionSettings: session.SessionOptions = {
+  const MemoryStoreInstance = MemoryStore(session);
+  
+  const sessionSettings: session.SessionOptions = {
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStore({
+    store: new MemoryStoreInstance({
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
     cookie: {
@@ -126,6 +127,5 @@ export function setupAuth(app: Express) {
       return res.sendStatus(401);
     }
     res.json(req.user);
-  });
   });
 }
