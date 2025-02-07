@@ -1,4 +1,6 @@
 import { users, gardens, type User, type Garden, type InsertUser, type InsertGarden } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -9,57 +11,51 @@ export interface IStorage {
   updateGarden(id: number, gridData: any): Promise<Garden>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private gardens: Map<number, Garden>;
-  private currentUserId: number;
-  private currentGardenId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.gardens = new Map();
-    this.currentUserId = 1;
-    this.currentGardenId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async getGarden(userId: number): Promise<Garden | undefined> {
-    return Array.from(this.gardens.values()).find(
-      (garden) => garden.userId === userId
-    );
+    const [garden] = await db.select().from(gardens).where(eq(gardens.userId, userId));
+    return garden;
   }
 
   async createGarden(garden: InsertGarden): Promise<Garden> {
-    const id = this.currentGardenId++;
-    const newGarden: Garden = { ...garden, id };
-    this.gardens.set(id, newGarden);
+    const [newGarden] = await db
+      .insert(gardens)
+      .values(garden)
+      .returning();
     return newGarden;
   }
 
   async updateGarden(id: number, gridData: any): Promise<Garden> {
-    const garden = this.gardens.get(id);
-    if (!garden) throw new Error("Garden not found");
-    
-    const updatedGarden = { ...garden, gridData };
-    this.gardens.set(id, updatedGarden);
-    return updatedGarden;
+    const [garden] = await db
+      .update(gardens)
+      .set({ gridData })
+      .where(eq(gardens.id, id))
+      .returning();
+
+    if (!garden) {
+      throw new Error("Garden not found");
+    }
+
+    return garden;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
