@@ -46,7 +46,7 @@ export default function AuthPage() {
   });
 
   if (user) {
-    setLocation("/onboarding");
+    setLocation("/garden");
     return null;
   }
 
