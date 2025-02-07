@@ -1,0 +1,34 @@
+Build a Progressive Web Application (PWA) for beginner and urban gardeners—similar in spirit to the Planter app—with a clean, intuitive, and slightly gamified interface. The core idea is to start simple and add more features incrementally. Here are the detailed requirements:
+
+Onboarding & User Data:
+
+When a new user opens the app, force them to complete their location details. This should include:
+Their geographic location (via HTML5 geolocation or manual input).
+Information about their gardening space (e.g., available area, type of container/bed).
+Estimated hours of sunlight (or light conditions) at their location.
+This data will be used later to provide crop/plant suggestions and tailor plant recommendations based on local conditions.
+Main Tabs (Navigation):
+
+The app should have three main tabs:
+Garden: A visual layout where users can see (and later arrange) the plants in their garden. (For now, a simple grid-based view is acceptable.)
+Plants: A tab that displays detailed information about plants. This will be powered by an external API.
+Settings: A section where users can update their profile and location details, adjust preferences, etc.
+Do not include a “Calendar” or “Guide” tab in this initial version.
+Plants Tab – API Integration:
+
+For plant data, integrate with a reliable external API. Recommendation: Use the OpenFarm API, which provides detailed information on a wide variety of plants (including companion planting details, growth requirements, and other useful data).
+The Plants tab should:
+Allow users to search for plants.
+Display essential information for each plant (e.g., planting depth, spacing, sun and water needs, companion plants, etc.).
+(Optional for later) Allow filtering based on the user’s location details (e.g., by gardening zone or light conditions).
+Technical Requirements:
+
+Build the app as a PWA so it works on mobile devices.
+Use a modern front-end framework (such as React, Vue, or Svelte) with a responsive design.
+The backend can be minimal at first, focusing on API integration for plant data; if a serverless architecture (such as Firebase) is appropriate, consider that.
+Code should be structured to allow adding features (like AI troubleshooting, daily photo analysis, etc.) in future updates.
+Development Approach:
+
+Start with a minimal viable product (MVP) that covers the onboarding process, basic visual garden layout, a Plants tab with API integration, and a Settings tab.
+Keep the code modular so that additional features (like a diary, calendar, and AI copilot) can be layered on later.
+Please develop this PWA according to the specifications above.
