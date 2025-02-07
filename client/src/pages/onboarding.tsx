@@ -5,11 +5,15 @@ import { useForm } from "react-hook-form";
 import { insertUserSchema, locationSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+
+const extendedSchema = insertUserSchema.extend({
+  sunlightHours: insertUserSchema.shape.sunlightHours.min(0, "Must be at least 0 hours").max(24, "Cannot exceed 24 hours"),
+});
 
 export default function Onboarding() {
   const [, setLocation] = useLocation();
@@ -17,7 +21,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
 
   const form = useForm({
-    resolver: zodResolver(insertUserSchema),
+    resolver: zodResolver(extendedSchema),
     defaultValues: {
       username: "",
       password: "",
@@ -29,7 +33,10 @@ export default function Onboarding() {
 
   const onSubmit = async (data: any) => {
     try {
-      await apiRequest("POST", "/api/users", data);
+      await apiRequest("POST", "/api/users", {
+        ...data,
+        sunlightHours: Number(data.sunlightHours),
+      });
       setLocation("/garden");
     } catch (error) {
       toast({
@@ -61,6 +68,15 @@ export default function Onboarding() {
     }
   };
 
+  const handleNext = () => {
+    const { username, password } = form.getValues();
+    if (!username || !password) {
+      form.trigger(["username", "password"]);
+      return;
+    }
+    setStep(2);
+  };
+
   return (
     <div className="min-h-screen p-4 flex items-center justify-center bg-gradient-to-b from-primary/10 to-background">
       <Card className="w-full max-w-md">
@@ -81,6 +97,7 @@ export default function Onboarding() {
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -93,10 +110,11 @@ export default function Onboarding() {
                         <FormControl>
                           <Input type="password" {...field} />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="button" onClick={() => setStep(2)} className="w-full">
+                  <Button type="button" onClick={handleNext} className="w-full">
                     Next
                   </Button>
                 </>
@@ -123,6 +141,7 @@ export default function Onboarding() {
                             <SelectItem value="ground">In-Ground Garden</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -133,8 +152,16 @@ export default function Onboarding() {
                       <FormItem>
                         <FormLabel>Daily Sunlight Hours</FormLabel>
                         <FormControl>
-                          <Input type="number" {...field} />
+                          <Input 
+                            type="number" 
+                            min="0"
+                            max="24"
+                            step="0.5"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
