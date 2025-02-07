@@ -24,6 +24,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   location: true,
   gardenSpace: true,
   sunlightHours: true,
+}).extend({
+  sunlightHours: z.number().int("Must be a whole number").min(0, "Must be at least 0 hours").max(24, "Cannot exceed 24 hours"),
 });
 
 export const insertGardenSchema = createInsertSchema(gardens).pick({

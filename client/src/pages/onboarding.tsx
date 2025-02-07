@@ -12,7 +12,10 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 const extendedSchema = insertUserSchema.extend({
-  sunlightHours: insertUserSchema.shape.sunlightHours.min(0, "Must be at least 0 hours").max(24, "Cannot exceed 24 hours"),
+  sunlightHours: insertUserSchema.shape.sunlightHours
+    .int("Must be a whole number")
+    .min(0, "Must be at least 0 hours")
+    .max(24, "Cannot exceed 24 hours"),
 });
 
 export default function Onboarding() {
@@ -156,9 +159,9 @@ export default function Onboarding() {
                             type="number" 
                             min="0"
                             max="24"
-                            step="0.5"
+                            step="1"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) => field.onChange(Math.floor(Number(e.target.value)))}
                           />
                         </FormControl>
                         <FormMessage />
