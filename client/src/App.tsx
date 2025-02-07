@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import Garden from "@/pages/garden";
 import Plants from "@/pages/plants";
 import Settings from "@/pages/settings";
+import { useLocation } from "wouter";
 
 function Router() {
   return (
@@ -24,12 +25,18 @@ function Router() {
   );
 }
 
+function NavbarWrapper() {
+  const [location] = useLocation();
+  if (location === "/auth") return null;
+  return <Navbar />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router />
-        <Navbar />
+        <NavbarWrapper />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>
