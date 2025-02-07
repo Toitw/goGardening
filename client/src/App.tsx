@@ -12,6 +12,7 @@ import Plants from "@/pages/plants";
 import Settings from "@/pages/settings";
 import Onboarding from "@/pages/onboarding";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
   return (
