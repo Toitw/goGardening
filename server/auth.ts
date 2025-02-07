@@ -12,9 +12,10 @@ declare global {
 }
 
 export function setupAuth(app: Express) {
-  const MemoryStore = require('memorystore')(session);
-  
-  const sessionSettings: session.SessionOptions = {
+  import('memorystore').then((memorystore) => {
+    const MemoryStore = memorystore.default(session);
+    
+    const sessionSettings: session.SessionOptions = {
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: false,
@@ -125,5 +126,6 @@ export function setupAuth(app: Express) {
       return res.sendStatus(401);
     }
     res.json(req.user);
+  });
   });
 }
