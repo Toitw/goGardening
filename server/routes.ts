@@ -1,3 +1,4 @@
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -6,8 +7,26 @@ import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
 
 export function registerRoutes(app: Express): Server {
-  // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
   setupAuth(app);
+
+  app.post("/api/users/onboarding", async (req, res) => {
+    try {
+      const { id } = req.user as any;
+      const { location, gardenSpace, sunlightHours } = req.body;
+      
+      const updatedUser = await storage.updateUser(id, {
+        location,
+        gardenSpace,
+        sunlightHours: Number(sunlightHours),
+      });
+      
+      res.json(updatedUser);
+    } catch (error: any) {
+      console.error('Onboarding error:', error);
+      const message = error.message || "Failed to save onboarding data";
+      res.status(400).json({ error: message });
+    }
+  });
 
   app.post("/api/gardens", async (req, res) => {
     try {

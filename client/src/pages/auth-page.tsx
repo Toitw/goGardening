@@ -1,14 +1,14 @@
-import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema } from "@shared/schema";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2, Leaf } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/use-auth";
 
 type LoginData = {
   username: string;
@@ -45,9 +45,8 @@ export default function AuthPage() {
     },
   });
 
-  // Redirect if already logged in
   if (user) {
-    setLocation("/garden");
+    setLocation("/onboarding");
     return null;
   }
 
@@ -67,7 +66,6 @@ export default function AuthPage() {
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
-
               <TabsContent value="login">
                 <Form {...loginForm}>
                   <form onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))} className="space-y-4">
@@ -99,7 +97,7 @@ export default function AuthPage() {
                     />
                     <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
                       {loginMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Loading...</span> // Added a loading indicator.  Original had a Loader2 component.
                       ) : (
                         "Login"
                       )}
@@ -107,7 +105,6 @@ export default function AuthPage() {
                   </form>
                 </Form>
               </TabsContent>
-
               <TabsContent value="register">
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit((data) => registerMutation.mutate(data))} className="space-y-4">
@@ -139,9 +136,9 @@ export default function AuthPage() {
                     />
                     <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
                       {registerMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Loading...</span> // Added a loading indicator
                       ) : (
-                        "Create Account"
+                        "Register"
                       )}
                     </Button>
                   </form>
@@ -151,9 +148,7 @@ export default function AuthPage() {
           </CardContent>
         </Card>
       </div>
-
       <div className="hidden md:flex flex-col items-center justify-center p-8 bg-gradient-to-b from-primary/10 to-background">
-        <Leaf className="h-16 w-16 text-primary mb-4" />
         <h2 className="text-2xl font-bold text-center mb-4">
           Your Personal Garden Assistant
         </h2>

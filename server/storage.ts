@@ -1,75 +1,57 @@
-import { users, gardens, type User, type Garden, type InsertUser, type InsertGarden } from "@shared/schema";
-import { db, pool } from "./db";
+import { db } from "./db";
+import { users, gardens } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import session from "express-session";
-import connectPg from "connect-pg-simple";
+import * as bcrypt from "bcryptjs";
 
-const PostgresSessionStore = connectPg(session);
+export const storage = {
+  async createUser({ username, password }: { username: string; password: string }) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [user] = await db.insert(users).values({
+      username,
+      password: hashedPassword,
+    }).returning();
+    return user;
+  },
 
-export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  getGarden(userId: number): Promise<Garden | undefined>;
-  createGarden(garden: InsertGarden): Promise<Garden>;
-  updateGarden(id: number, gridData: any): Promise<Garden>;
-  sessionStore: session.Store;
-}
+  async updateUser(id: number, data: any) {
+    const [user] = await db.update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  },
 
-export class DatabaseStorage implements IStorage {
-  sessionStore: session.Store;
-
-  constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true,
+  async getUser(username: string) {
+    const user = await db.query.users.findFirst({
+      where: eq(users.username, username),
     });
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
-  }
+  },
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+  async getUserById(id: number) {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, id),
+    });
     return user;
-  }
+  },
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
-  }
-
-  async getGarden(userId: number): Promise<Garden | undefined> {
-    const [garden] = await db.select().from(gardens).where(eq(gardens.userId, userId));
+  async createGarden(data: any) {
+    const [garden] = await db.insert(gardens).values(data).returning();
     return garden;
-  }
+  },
 
-  async createGarden(garden: InsertGarden): Promise<Garden> {
-    const [newGarden] = await db
-      .insert(gardens)
-      .values(garden)
-      .returning();
-    return newGarden;
-  }
+  async getGarden(userId: number) {
+    const garden = await db.query.gardens.findFirst({
+      where: eq(gardens.userId, userId),
+    });
+    return garden;
+  },
 
-  async updateGarden(id: number, gridData: any): Promise<Garden> {
-    const [garden] = await db
-      .update(gardens)
+  async updateGarden(id: number, gridData: any) {
+    const [garden] = await db.update(gardens)
       .set({ gridData })
       .where(eq(gardens.id, id))
       .returning();
-
-    if (!garden) {
-      throw new Error("Garden not found");
-    }
-
     return garden;
   }
-}
-
-export const storage = new DatabaseStorage();
+};
