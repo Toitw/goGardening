@@ -4,6 +4,15 @@ import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 
 export const storage = {
+  async deleteTestUsers() {
+    await db.delete(users)
+      .where(eq(users.username, "test"))
+      .where(eq(users.username, "test1"))
+      .where(eq(users.username, "test2"))
+      .where(eq(users.username, "test3"))
+      .where(eq(users.username, "test4"));
+  },
+
   async verifyPassword(password: string, hashedPassword: string) {
     return bcryptjs.compare(password, hashedPassword);
   },

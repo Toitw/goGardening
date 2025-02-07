@@ -60,6 +60,16 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/users/test", async (req, res) => {
+    try {
+      await storage.deleteTestUsers();
+      res.json({ message: "Test users deleted successfully" });
+    } catch (error) {
+      console.error('Delete test users error:', error);
+      res.status(500).json({ error: "Failed to delete test users" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
