@@ -1,38 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertGardenSchema } from "@shared/schema";
+import { insertGardenSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { setupAuth } from "./auth";
 
 export function registerRoutes(app: Express): Server {
-  app.post("/api/users", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByUsername(userData.username);
-
-      if (existingUser) {
-        return res.status(400).json({ 
-          error: "Username already taken. Please choose a different username." 
-        });
-      }
-
-      const user = await storage.createUser(userData);
-      res.json(user);
-    } catch (error) {
-      console.error('User creation error:', error);
-      const message = error instanceof Error ? error.message : "Invalid user data";
-      res.status(400).json({ error: message });
-    }
-  });
-
-  app.get("/api/users/:id", async (req, res) => {
-    const user = await storage.getUser(parseInt(req.params.id));
-    if (!user) {
-      res.status(404).json({ error: "User not found" });
-      return;
-    }
-    res.json(user);
-  });
+  // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
+  setupAuth(app);
 
   app.post("/api/gardens", async (req, res) => {
     try {
