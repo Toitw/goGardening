@@ -12,10 +12,15 @@ declare global {
 }
 
 export function setupAuth(app: Express) {
+  const MemoryStore = require('memorystore')(session);
+  
   const sessionSettings: session.SessionOptions = {
     secret: 'your-secret-key',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
+    store: new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
