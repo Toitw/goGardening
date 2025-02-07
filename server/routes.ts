@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertGardenSchema } from "@shared/schema";
+import { fromZodError } from "zod-validation-error";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/users", async (req, res) => {
@@ -10,7 +11,9 @@ export function registerRoutes(app: Express): Server {
       const user = await storage.createUser(userData);
       res.json(user);
     } catch (error) {
-      res.status(400).json({ error: "Invalid user data" });
+      console.error('User creation error:', error);
+      const message = error instanceof Error ? error.message : "Invalid user data";
+      res.status(400).json({ error: message });
     }
   });
 
@@ -29,7 +32,9 @@ export function registerRoutes(app: Express): Server {
       const garden = await storage.createGarden(gardenData);
       res.json(garden);
     } catch (error) {
-      res.status(400).json({ error: "Invalid garden data" });
+      console.error('Garden creation error:', error);
+      const message = error instanceof Error ? error.message : "Invalid garden data";
+      res.status(400).json({ error: message });
     }
   });
 
@@ -47,7 +52,9 @@ export function registerRoutes(app: Express): Server {
       const garden = await storage.updateGarden(parseInt(req.params.id), req.body.gridData);
       res.json(garden);
     } catch (error) {
-      res.status(400).json({ error: "Failed to update garden" });
+      console.error('Garden update error:', error);
+      const message = error instanceof Error ? error.message : "Failed to update garden";
+      res.status(400).json({ error: message });
     }
   });
 
