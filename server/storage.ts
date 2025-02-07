@@ -1,11 +1,11 @@
 import { db } from "./db";
 import { users, gardens } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import * as bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 
 export const storage = {
   async createUser({ username, password }: { username: string; password: string }) {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcryptjs.hash(password, 10);
     const [user] = await db.insert(users).values({
       username,
       password: hashedPassword,
