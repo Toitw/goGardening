@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import Garden from "@/pages/garden";
 import Plants from "@/pages/plants";
 import Settings from "@/pages/settings";
+import Onboarding from "@/pages/onboarding";
 import { useLocation } from "wouter";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
     <Switch>
       <Route path="/" component={() => <Redirect to="/garden" />} />
       <Route path="/auth" component={AuthPage} />
+      <ProtectedRoute path="/onboarding" component={Onboarding} />
       <ProtectedRoute path="/garden" component={Garden} />
       <ProtectedRoute path="/plants" component={Plants} />
       <ProtectedRoute path="/settings" component={Settings} />
