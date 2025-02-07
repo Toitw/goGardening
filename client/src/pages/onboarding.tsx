@@ -51,12 +51,26 @@ export default function Onboarding() {
   const requestLocation = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          form.setValue("location", {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            address: "Location detected",
-          });
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+            );
+            const data = await response.json();
+            form.setValue("location", {
+              lat,
+              lng,
+              address: data.display_name,
+            });
+          } catch (error) {
+            form.setValue("location", {
+              lat,
+              lng,
+              address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+            });
+          }
         },
         () => {
           toast({
