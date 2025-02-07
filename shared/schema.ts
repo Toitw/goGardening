@@ -15,6 +15,8 @@ export const gardens = pgTable("gardens", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
+  width: integer("width").notNull(),
+  length: integer("length").notNull(),
   gridData: jsonb("grid_data").notNull(),
 });
 
@@ -48,6 +50,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertGardenSchema = createInsertSchema(gardens).pick({
   userId: true,
   name: true,
+  width: true,
+  length: true,
   gridData: true,
 });
 

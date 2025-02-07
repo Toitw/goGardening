@@ -44,10 +44,15 @@ export default function Garden() {
 
   const createGarden = useMutation({
     mutationFn: async (data: CreateGardenData) => {
+      const columns = Math.ceil(data.width / 30);
+      const rows = Math.ceil(data.length / 30);
+
       return apiRequest("POST", "/api/gardens", {
         name: data.name,
         userId: user!.id,
-        gridData: Array(Math.ceil(data.length / 30) * Math.ceil(data.width / 30)).fill(null),
+        width: data.width,
+        length: data.length,
+        gridData: Array(rows * columns).fill(null),
       });
     },
     onSuccess: () => {
@@ -74,7 +79,11 @@ export default function Garden() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
   }
 
   if (!garden) {
@@ -166,9 +175,14 @@ export default function Garden() {
     <div className="pb-20 md:pb-0 md:pt-16">
       <div className="p-4">
         <h1 className="text-2xl font-bold">{garden.name}</h1>
+        <p className="text-sm text-muted-foreground">
+          {garden.width}cm × {garden.length}cm
+        </p>
       </div>
       <GardenGrid
         gridData={garden.gridData || []}
+        width={garden.width}
+        length={garden.length}
         onCellClick={handleCellClick}
       />
       <Dialog open={!!selectedCell} onOpenChange={() => setSelectedCell(null)}>
