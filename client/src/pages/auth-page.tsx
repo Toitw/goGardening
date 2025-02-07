@@ -20,6 +20,11 @@ const loginSchema = insertUserSchema.pick({
   password: true,
 });
 
+const registerSchema = insertUserSchema.pick({
+  username: true,
+  password: true,
+});
+
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { loginMutation, registerMutation, user } = useAuth();
@@ -33,13 +38,10 @@ export default function AuthPage() {
   });
 
   const registerForm = useForm({
-    resolver: zodResolver(insertUserSchema),
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
       password: "",
-      location: { lat: 0, lng: 0, address: "" },
-      gardenSpace: "container",
-      sunlightHours: 0,
     },
   });
 
@@ -130,38 +132,6 @@ export default function AuthPage() {
                           <FormLabel>Password</FormLabel>
                           <FormControl>
                             <Input type="password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="gardenSpace"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Garden Space</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="sunlightHours"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Daily Sunlight Hours</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="24"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

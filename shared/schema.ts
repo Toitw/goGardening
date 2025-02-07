@@ -6,9 +6,9 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  location: jsonb("location").notNull(),
-  gardenSpace: text("garden_space").notNull(),
-  sunlightHours: integer("sunlight_hours").notNull(),
+  location: jsonb("location"),
+  gardenSpace: text("garden_space"),
+  sunlightHours: integer("sunlight_hours"),
 });
 
 export const gardens = pgTable("gardens", {
@@ -21,11 +21,14 @@ export const gardens = pgTable("gardens", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
-  location: true,
-  gardenSpace: true,
-  sunlightHours: true,
 }).extend({
-  sunlightHours: z.number().int("Must be a whole number").min(0, "Must be at least 0 hours").max(24, "Cannot exceed 24 hours"),
+  location: z.object({
+    lat: z.number(),
+    lng: z.number(),
+    address: z.string(),
+  }).optional(),
+  gardenSpace: z.string().optional(),
+  sunlightHours: z.number().int().min(0).max(24).optional(),
 });
 
 export const insertGardenSchema = createInsertSchema(gardens).pick({
