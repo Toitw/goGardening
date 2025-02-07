@@ -158,7 +158,12 @@ export default function Onboarding() {
                         max="24"
                         step="1"
                         {...field}
-                        onChange={(e) => field.onChange(Math.floor(Number(e.target.value)))}
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/^0+/, '');
+                          const num = Math.min(24, Math.max(0, Number(value) || 0));
+                          field.onChange(num);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
