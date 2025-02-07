@@ -41,10 +41,12 @@ export default function Onboarding() {
         sunlightHours: Number(data.sunlightHours),
       });
       setLocation("/garden");
-    } catch (error) {
+    } catch (error: any) {
+      // Extract error message from the response
+      const errorMessage = error.message || "Failed to create account";
       toast({
         title: "Error",
-        description: "Failed to create account",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -155,8 +157,8 @@ export default function Onboarding() {
                       <FormItem>
                         <FormLabel>Daily Sunlight Hours</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
+                          <Input
+                            type="number"
                             min="0"
                             max="24"
                             step="1"

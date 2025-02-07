@@ -8,6 +8,14 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/users", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByUsername(userData.username);
+
+      if (existingUser) {
+        return res.status(400).json({ 
+          error: "Username already taken. Please choose a different username." 
+        });
+      }
+
       const user = await storage.createUser(userData);
       res.json(user);
     } catch (error) {
