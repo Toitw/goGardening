@@ -35,16 +35,12 @@ export const storage = {
   },
 
   async getUser(id: number) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, id),
-    });
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   },
 
   async getUserByUsername(username: string) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.username, username),
-    });
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   },
 
