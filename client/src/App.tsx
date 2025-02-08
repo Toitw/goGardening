@@ -40,7 +40,7 @@ function Router() {
         
         return <Garden />;
       }} />
-      <ProtectedRoute path="/garden/new" component={() => {
+      <ProtectedRoute path="/garden/new" component={async () => {
         const { user } = useAuth();
         
         // Redirect to onboarding if user hasn't completed setup
