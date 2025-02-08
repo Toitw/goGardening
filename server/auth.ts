@@ -1,3 +1,4 @@
+
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
@@ -23,7 +24,7 @@ export function setupAuth(app: Express) {
   });
 
   const MemoryStoreInstance = MemoryStore(session);
-
+  
   const sessionSettings: session.SessionOptions = {
     secret: 'your-secret-key',
     resave: false,
@@ -47,7 +48,7 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username: string, password: string, done: any) => {
+    new LocalStrategy(async (username, password, done) => {
       try {
         console.log('Authenticating user:', username);
         const user = await storage.getUserByUsername(username);
@@ -74,7 +75,7 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user: Express.User, done) => {
+  passport.serializeUser((user, done) => {
     console.log('Serializing user:', user);
     done(null, user.id);
   });
@@ -110,14 +111,14 @@ export function setupAuth(app: Express) {
         }
         res.status(201).json(user);
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ message: "Error creating user" });
     }
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: Express.User | false, info: any) => {
+    passport.authenticate("local", (err, user, info) => {
       if (err) {
         console.error('Login error:', err);
         return res.status(500).json({ message: err.message || "Internal server error" });
