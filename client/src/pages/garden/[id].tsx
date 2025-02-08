@@ -1,22 +1,27 @@
-
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
 import { GardenGrid } from "@/components/garden-grid";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function GardenDetail() {
   const { id: gardenId } = useParams();
   const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   const { data: garden, isLoading, error } = useQuery({
     queryKey: ["garden", gardenId],
     queryFn: async () => {
       if (!gardenId) throw new Error("Garden ID is required");
       if (!user) throw new Error("Authentication required");
-      
+
       console.log('Garden fetch attempt:', {
         gardenId,
         userId: user.id,
@@ -33,7 +38,7 @@ export default function GardenDetail() {
         },
         credentials: 'include'
       });
-      
+
       if (!response.ok) {
         const data = await response.json();
         if (response.status === 404) {
@@ -44,7 +49,7 @@ export default function GardenDetail() {
         }
         throw new Error(data.error || 'Failed to fetch garden');
       }
-      
+
       const data = await response.json();
         console.log('Garden data received:', data);
         return data;
@@ -109,6 +114,43 @@ export default function GardenDetail() {
           </DialogHeader>
         </DialogContent>
       </Dialog>
+      <Button 
+          variant="ghost" 
+          size="icon"
+          className="text-destructive hover:bg-destructive/10"
+          onClick={() => setShowDeleteConfirm(true)}
+        >
+          <Trash2 className="w-5 h-5" />
+        </Button>
+
+        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your garden and its data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive hover:bg-destructive/90"
+                onClick={async () => {
+                  const response = await fetch(`/api/gardens/${gardenId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                  });
+                  if (response.ok) {
+                    await queryClient.invalidateQueries({ queryKey: ["gardens"] });
+                    setLocation('/garden');
+                  }
+                }}
+              >
+                Delete Garden
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 }
