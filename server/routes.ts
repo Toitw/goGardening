@@ -140,6 +140,29 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/gardens/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const { id: userId } = req.user as any;
+      const gardenId = parseInt(req.params.id);
+
+      const deletedGarden = await storage.deleteGarden(gardenId, userId);
+      
+      if (!deletedGarden) {
+        return res.status(404).json({ error: "Garden not found" });
+      }
+
+      res.json(deletedGarden);
+    } catch (error) {
+      console.error('Garden deletion error:', error);
+      const message = error instanceof Error ? error.message : "Failed to delete garden";
+      res.status(400).json({ error: message });
+    }
+  });
+
   app.delete("/api/users/test", async (req, res) => {
     try {
       await storage.deleteTestUsers();

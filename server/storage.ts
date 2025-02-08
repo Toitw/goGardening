@@ -74,5 +74,13 @@ export const storage = {
       .where(eq(gardens.userId, userId))
       .returning();
     return garden;
+  },
+
+  async deleteGarden(id: number, userId: number) {
+    const [deletedGarden] = await db.delete(gardens)
+      .where(eq(gardens.id, id))
+      .where(eq(gardens.userId, userId))
+      .returning();
+    return deletedGarden;
   }
 };
