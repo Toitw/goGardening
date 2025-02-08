@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { users, gardens } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 
 export const storage = {
@@ -12,17 +12,27 @@ export const storage = {
     return bcryptjs.compare(password, hashedPassword);
   },
 
-  async createUser({ username, password }: { username: string; password: string }) {
+  async createUser({
+    username,
+    password,
+  }: {
+    username: string;
+    password: string;
+  }) {
     const hashedPassword = await bcryptjs.hash(password, 10);
-    const [user] = await db.insert(users).values({
-      username,
-      password: hashedPassword,
-    }).returning();
+    const [user] = await db
+      .insert(users)
+      .values({
+        username,
+        password: hashedPassword,
+      })
+      .returning();
     return user;
   },
 
   async updateUser(id: number, data: any) {
-    const [user] = await db.update(users)
+    const [user] = await db
+      .update(users)
       .set(data)
       .where(eq(users.id, id))
       .returning();
@@ -35,13 +45,23 @@ export const storage = {
   },
 
   async getUserByUsername(username: string) {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user;
   },
 
-  async createGarden(data: { userId: number; name: string; width: number; length: number; gridData: any[] }) {
-    console.log('Creating garden in storage with data:', data);
-    const [garden] = await db.insert(gardens)
+  async createGarden(data: {
+    userId: number;
+    name: string;
+    width: number;
+    length: number;
+    gridData: any[];
+  }) {
+    console.log("Creating garden in storage with data:", data);
+    const [garden] = await db
+      .insert(gardens)
       .values({
         userId: data.userId,
         name: data.name,
@@ -54,23 +74,20 @@ export const storage = {
   },
 
   async getGardens(userId: number) {
-    return await db.select()
-      .from(gardens)
-      .where(eq(gardens.userId, userId));
+    return await db.select().from(gardens).where(eq(gardens.userId, userId));
   },
 
   async getGardenById(gardenId: number, userId: number) {
     const results = await db
       .select()
       .from(gardens)
-      .where(eq(gardens.id, gardenId))
-      .where(eq(gardens.userId, userId));
-
+      .where(and(eq(gardens.id, gardenId), eq(gardens.userId, userId)));
     return results[0];
   },
 
   async updateGarden(id: number, userId: number, gridData: any[]) {
-    const [garden] = await db.update(gardens)
+    const [garden] = await db
+      .update(gardens)
       .set({ gridData })
       .where(eq(gardens.id, id))
       .where(eq(gardens.userId, userId))
@@ -79,10 +96,10 @@ export const storage = {
   },
 
   async deleteGarden(id: number, userId: number) {
-    const [deletedGarden] = await db.delete(gardens)
-      .where(eq(gardens.id, id))
-      .where(eq(gardens.userId, userId))
+    const [deletedGarden] = await db
+      .delete(gardens)
+      .where(and(eq(gardens.id, id), eq(gardens.userId, userId)))
       .returning();
     return deletedGarden;
-  }
+  },
 };
