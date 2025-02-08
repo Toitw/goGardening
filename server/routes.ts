@@ -66,16 +66,27 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.get("/api/gardens/:gardenId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
     try {
       const { id: userId } = req.user as any;
       const gardenId = parseInt(req.params.gardenId);
-      console.log('Fetching garden:', gardenId);
-      const garden = await storage.getGardenById(gardenId, userId);
-      if (!garden) {
-        console.log('No garden found');
-        res.status(404).json({ error: "Garden not found" });
-        return;
+      
+      if (isNaN(gardenId)) {
+        return res.status(400).json({ error: "Invalid garden ID" });
       }
+
+      console.log('Fetching garden:', gardenId, 'for user:', userId);
+      const garden = await storage.getGardenById(gardenId, userId);
+      
+      if (!garden) {
+        console.log('No garden found for user', userId, 'and garden', gardenId);
+        return res.status(404).json({ error: "Garden not found" });
+      }
+
+      console.log('Garden found:', garden);
       res.json(garden);
     } catch (error) {
       console.error('Error fetching garden:', error);

@@ -15,6 +15,9 @@ export default function GardenDetail() {
     queryKey: ["garden", gardenId],
     queryFn: async () => {
       if (!gardenId) throw new Error("Garden ID is required");
+      if (!user) throw new Error("Authentication required");
+      
+      console.log('Fetching garden with ID:', gardenId);
       const response = await fetch(`/api/gardens/${gardenId}`, {
         headers: {
           'Accept': 'application/json',
@@ -24,12 +27,19 @@ export default function GardenDetail() {
       });
       
       if (!response.ok) {
+        const data = await response.json();
         if (response.status === 404) {
-          throw new Error('Garden not found');
+          throw new Error(data.error || 'Garden not found');
         }
-        throw new Error('Failed to fetch garden');
+        if (response.status === 401) {
+          throw new Error('Please log in to view this garden');
+        }
+        throw new Error(data.error || 'Failed to fetch garden');
       }
-      return response.json();
+      
+      const data = await response.json();
+      console.log('Garden data received:', data);
+      return data;
     },
     enabled: !!gardenId && !!user,
   });
