@@ -17,7 +17,12 @@ export default function GardenDetail() {
       if (!gardenId) throw new Error("Garden ID is required");
       if (!user) throw new Error("Authentication required");
       
-      console.log('Fetching garden with ID:', gardenId);
+      console.log('Garden fetch attempt:', {
+        gardenId,
+        userId: user.id,
+        isAuthenticated: !!user
+      });
+
       const response = await fetch(`/api/gardens/${gardenId}`, {
         headers: {
           'Accept': 'application/json',
