@@ -11,9 +11,26 @@ interface PlantCardProps {
   onClick?: () => void;
 }
 
-export function PlantCard({ name, image, sunlight, water, description, onClick }: PlantCardProps) {
+export function PlantCard({
+  name,
+  image,
+  sunlight,
+  water,
+  description,
+  onClick,
+}: PlantCardProps) {
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={onClick}>
+    <Card
+      className="cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={onClick}
+    >
+      {image && (
+        <img
+          src={image}
+          alt={name}
+          className="h-32 w-full object-cover rounded-t-md"
+        />
+      )}
       <CardHeader>
         <CardTitle className="text-lg">{name}</CardTitle>
       </CardHeader>
@@ -28,7 +45,9 @@ export function PlantCard({ name, image, sunlight, water, description, onClick }
             {water}
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {description}
+        </p>
       </CardContent>
     </Card>
   );

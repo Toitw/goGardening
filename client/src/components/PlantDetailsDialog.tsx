@@ -1,32 +1,73 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Heart, HeartOff } from "lucide-react";
 
 interface PlantDetailsDialogProps {
-  plant: any; // Ideally type this with your API response structure
+  plant: any; // Adjust this type according to your API response structure.
   onClose: () => void;
 }
 
-export function PlantDetailsDialog({ plant, onClose }: PlantDetailsDialogProps) {
+export function PlantDetailsDialog({
+  plant,
+  onClose,
+}: PlantDetailsDialogProps) {
   const [favorite, setFavorite] = useState(false);
 
-  // Create an array for quick info items.
+  // The quick info items now include fallback texts.
   const quickInfoItems = [
-    { label: "Spacing", value: plant.attributes.spacing, icon: "📏" },
-    { label: "Planting Depth", value: plant.attributes.planting_depth, icon: "🔻" },
-    { label: "Sun", value: plant.attributes.sun_requirements, icon: "☀️" },
-    { label: "Water", value: plant.attributes.water_requirements, icon: "💧" },
-    { label: "Season", value: plant.attributes.season, icon: "📅" },
-    { label: "Frost", value: plant.attributes.frost_tolerance, icon: "❄️" },
-    { label: "Height", value: plant.attributes.height, icon: "📏" },
-    { label: "Germination", value: plant.attributes.germination, icon: "🌱" },
-    { label: "Sprout to Harvest", value: plant.attributes.sprout_to_harvest, icon: "⏱️" },
-    { label: "Soil pH", value: plant.attributes.soil_ph, icon: "🧪" },
+    { label: "Spacing", value: plant.attributes.spacing || "N/A", icon: "📏" },
+    {
+      label: "Planting Depth",
+      value: plant.attributes.planting_depth || "N/A",
+      icon: "🔻",
+    },
+    {
+      label: "Sun",
+      value: plant.attributes.sun_requirements || "Part sun to full sun",
+      icon: "☀️",
+    },
+    {
+      label: "Water",
+      value: plant.attributes.water_requirements || "Regular water",
+      icon: "💧",
+    },
+    {
+      label: "Season",
+      value: plant.attributes.season || "All seasons",
+      icon: "📅",
+    },
+    {
+      label: "Frost",
+      value: plant.attributes.frost_tolerance || "Semi-Tolerant",
+      icon: "❄️",
+    },
+    { label: "Height", value: plant.attributes.height || "Varies", icon: "📏" },
+    {
+      label: "Germination",
+      value: plant.attributes.germination || "N/A",
+      icon: "🌱",
+    },
+    {
+      label: "Sprout to Harvest",
+      value: plant.attributes.sprout_to_harvest || "N/A",
+      icon: "⏱️",
+    },
+    {
+      label: "Soil pH",
+      value: plant.attributes.soil_ph || "Neutral",
+      icon: "🧪",
+    },
   ];
 
   return (
     <Dialog open={!!plant} onOpenChange={onClose}>
-      <DialogContent>
+      {/* Adding max-height and vertical scroll to avoid overflow */}
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold">
@@ -36,7 +77,7 @@ export function PlantDetailsDialog({ plant, onClose }: PlantDetailsDialogProps) 
               {favorite ? (
                 <Heart className="text-red-500 w-6 h-6" />
               ) : (
-                <HeartOff className="w-6 h-6" />
+                <Heart className="w-6 h-6" />
               )}
             </button>
           </div>
@@ -51,14 +92,16 @@ export function PlantDetailsDialog({ plant, onClose }: PlantDetailsDialogProps) 
         {plant.attributes.additional_images &&
           plant.attributes.additional_images.length > 0 && (
             <div className="grid grid-cols-3 gap-2 my-4">
-              {plant.attributes.additional_images.map((img: string, index: number) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt={`${plant.attributes.name} ${index + 1}`}
-                  className="object-cover rounded-md"
-                />
-              ))}
+              {plant.attributes.additional_images.map(
+                (img: string, index: number) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`${plant.attributes.name} ${index + 1}`}
+                    className="object-cover rounded-md"
+                  />
+                ),
+              )}
             </div>
           )}
 
@@ -67,17 +110,13 @@ export function PlantDetailsDialog({ plant, onClose }: PlantDetailsDialogProps) 
           <p>{plant.attributes.description}</p>
         </div>
 
-        {/* Quick Info Grid */}
+        {/* Quick Info Grid with attribute previews */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 my-4">
           {quickInfoItems.map((item, index) => (
             <div
               key={index}
               className="flex flex-col items-center text-center cursor-pointer"
-              onClick={() => {
-                // When clicking an item, you might open a dialog with extra info.
-                // For now, we simply log the label.
-                console.log(`Show more info about ${item.label}`);
-              }}
+              onClick={() => console.log(`Show more info about ${item.label}`)}
             >
               <div className="text-2xl">{item.icon}</div>
               <div className="font-semibold">{item.value}</div>
@@ -86,7 +125,7 @@ export function PlantDetailsDialog({ plant, onClose }: PlantDetailsDialogProps) 
           ))}
         </div>
 
-        {/* Additional Categories */}
+        {/* Additional plant categories/details */}
         <div className="space-y-4 my-4">
           {plant.attributes.varieties && (
             <div>
@@ -97,13 +136,17 @@ export function PlantDetailsDialog({ plant, onClose }: PlantDetailsDialogProps) 
           {plant.attributes.companion_plants && (
             <div>
               <h3 className="font-bold">Companion Plants</h3>
-              <p>{(plant.attributes.companion_plants as string[]).join(", ")}</p>
+              <p>
+                {(plant.attributes.companion_plants as string[]).join(", ")}
+              </p>
             </div>
           )}
           {plant.attributes.combative_plants && (
             <div>
               <h3 className="font-bold">Combative Plants</h3>
-              <p>{(plant.attributes.combative_plants as string[]).join(", ")}</p>
+              <p>
+                {(plant.attributes.combative_plants as string[]).join(", ")}
+              </p>
             </div>
           )}
           {plant.attributes.nutrition && (
