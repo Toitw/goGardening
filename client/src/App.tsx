@@ -13,9 +13,6 @@ import Settings from "@/pages/settings";
 import Onboarding from "@/pages/onboarding";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-// Assume NewGardenPage component exists elsewhere
-import NewGardenPage from "@/pages/garden/new";
-
 
 function Router() {
   return (
@@ -25,16 +22,24 @@ function Router() {
       <Route path="/onboarding" component={() => {
         const location = useLocation()[0];
         const { user } = useAuth();
-
+        
         // Redirect to garden if user has already completed onboarding
         if (user?.gardenSpace && location === '/onboarding') {
           return <Redirect to="/garden" />;
         }
-
+        
         return <Onboarding />;
       }} />
-      <ProtectedRoute path="/garden/new" component={NewGardenPage} /> {/* Added route */}
-      <ProtectedRoute path="/garden/:id" component={Garden} />
+      <ProtectedRoute path="/garden" component={() => {
+        const { user } = useAuth();
+        
+        // Redirect to onboarding if user hasn't completed setup
+        if (!user?.gardenSpace) {
+          return <Redirect to="/onboarding" />;
+        }
+        
+        return <Garden />;
+      }} />
       <ProtectedRoute path="/plants" component={Plants} />
       <ProtectedRoute path="/settings" component={Settings} />
       <Route component={NotFound} />

@@ -1,4 +1,5 @@
-import { useParams, Link, useLocation } from "wouter";
+
+import { useParams, Link } from "wouter";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Sprout } from "lucide-react";

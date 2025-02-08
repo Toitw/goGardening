@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
-import { Redirect } from 'wouter';
-
 
 type LoginData = {
   username: string;
@@ -47,13 +45,8 @@ export default function AuthPage() {
     },
   });
 
-  useEffect(() => {
-    if (user) {
-      setLocation("/garden");
-    }
-  }, [user, setLocation]);
-
   if (user) {
+    setLocation("/garden");
     return null;
   }
 
@@ -104,7 +97,7 @@ export default function AuthPage() {
                     />
                     <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
                       {loginMutation.isPending ? (
-                        <span>Loading...</span>
+                        <span>Loading...</span> // Added a loading indicator.  Original had a Loader2 component.
                       ) : (
                         "Login"
                       )}
@@ -143,7 +136,7 @@ export default function AuthPage() {
                     />
                     <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
                       {registerMutation.isPending ? (
-                        <span>Loading...</span>
+                        <span>Loading...</span> // Added a loading indicator
                       ) : (
                         "Register"
                       )}
