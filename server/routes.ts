@@ -72,7 +72,14 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.get("/api/gardens/:id", async (req, res) => {
+    console.log('Garden fetch request:', {
+      params: req.params,
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user
+    });
+
     if (!req.isAuthenticated()) {
+      console.log('Unauthorized garden access attempt');
       return res.status(401).json({ error: "Not authenticated" });
     }
 
@@ -80,7 +87,14 @@ export function registerRoutes(app: Express): Server {
       const { id: userId } = req.user as any;
       const gardenId = parseInt(req.params.id);
 
+      console.log('Processing garden request:', {
+        userId,
+        gardenId,
+        isValidId: !isNaN(gardenId)
+      });
+
       if (isNaN(gardenId)) {
+        console.log('Invalid garden ID format:', req.params.id);
         return res.status(400).json({ error: "Invalid garden ID" });
       }
 

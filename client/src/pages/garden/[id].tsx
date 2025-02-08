@@ -23,6 +23,8 @@ export default function GardenDetail() {
         isAuthenticated: !!user
       });
 
+      try {
+
       const response = await fetch(`/api/gardens/${gardenId}`, {
         headers: {
           'Accept': 'application/json',
@@ -43,8 +45,12 @@ export default function GardenDetail() {
       }
       
       const data = await response.json();
-      console.log('Garden data received:', data);
-      return data;
+        console.log('Garden data received:', data);
+        return data;
+      } catch (error) {
+        console.error('Garden fetch error:', error);
+        throw error;
+      }
     },
     enabled: !!gardenId && !!user,
   });

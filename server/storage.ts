@@ -67,11 +67,10 @@ export const storage = {
     return garden;
   },
 
-  async updateGarden(id: number, userId: number, gridData: any[]) {
+  async updateGarden(id: number, gridData: any[]) {
     const [garden] = await db.update(gardens)
       .set({ gridData })
       .where(eq(gardens.id, id))
-      .where(eq(gardens.userId, userId))
       .returning();
     return garden;
   }
