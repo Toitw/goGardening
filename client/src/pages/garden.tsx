@@ -1,5 +1,5 @@
 
-import { useParams, Link } from "wouter";
+import { Link } from "wouter";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Sprout } from "lucide-react";
@@ -30,7 +30,7 @@ export default function Garden() {
   }
 
   return (
-    <div className="p-4">
+    <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">My Gardens</h1>
         <Link href="/garden/new">
