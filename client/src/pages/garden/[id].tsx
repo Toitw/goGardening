@@ -96,7 +96,17 @@ export default function GardenDetail() {
   return (
     <div className="pb-20 md:pb-0 md:pt-16">
       <div className="p-4">
-        <h1 className="text-2xl font-bold">{garden.name}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold">{garden.name}</h1>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-destructive hover:bg-destructive/10"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            <Trash2 className="w-5 h-5" />
+          </Button>
+        </div>
         <p className="text-sm text-muted-foreground">
           {garden.width}cm × {garden.length}cm
         </p>
