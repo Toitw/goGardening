@@ -37,7 +37,9 @@ export default function NewGarden() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
       if (!response.ok) {
