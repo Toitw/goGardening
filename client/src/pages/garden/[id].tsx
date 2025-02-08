@@ -11,8 +11,8 @@ export default function GardenDetail() {
   const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
   const { user } = useAuth();
 
-  const { data: garden, isLoading } = useQuery({
-    queryKey: ["/api/gardens", gardenId],
+  const { data: garden, isLoading, error } = useQuery({
+    queryKey: ["garden", gardenId],
     queryFn: async () => {
       const numericId = parseInt(gardenId);
       if (isNaN(numericId)) {
@@ -24,8 +24,16 @@ export default function GardenDetail() {
       }
       return response.json();
     },
-    enabled: !!user?.id && !!gardenId,
+    enabled: !!gardenId,
   });
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="text-center">Error: {(error as Error).message}</div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
