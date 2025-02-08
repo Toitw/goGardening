@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const gardenSchema = z.object({
@@ -19,7 +19,7 @@ const gardenSchema = z.object({
 type GardenForm = z.infer<typeof gardenSchema>;
 
 export default function NewGarden() {
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
   const form = useForm<GardenForm>({
@@ -47,7 +47,7 @@ export default function NewGarden() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/gardens"] });
-      navigate("/garden");
+      setLocation("/garden");
     },
   });
 

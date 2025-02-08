@@ -48,7 +48,7 @@ function Router() {
           return <Redirect to="/onboarding" />;
         }
         
-        const NewGarden = require('./pages/garden/new').default;
+        const NewGarden = (await import('./pages/garden/new')).default;
         return <NewGarden />;
       }} />
       <ProtectedRoute path="/plants" component={Plants} />
