@@ -151,7 +151,7 @@ export default function GardenDetail() {
                     credentials: 'include'
                   });
                   if (response.ok) {
-                    await queryClient.invalidateQueries({ queryKey: ["gardens"] });
+                    await queryClient.invalidateQueries({ queryKey: ["/api/gardens"] });
                     setLocation('/garden');
                   }
                 }}
