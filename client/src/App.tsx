@@ -46,7 +46,7 @@ function Router() {
         const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
 
         React.useEffect(() => {
-          import('./pages/garden/new').then(module => {
+          import('./pages/gardens/new').then(module => {
             setComponent(() => module.default);
           });
         }, []);
