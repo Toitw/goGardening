@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "wouter";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,18 +52,7 @@ export default function Garden() {
           </CardHeader>
         </Card>
       ) : (
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {gardens.map((garden) => (
-          <Link key={garden.id} href={`/garden/${garden.id}`}>
-            <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
-              <CardHeader>
-                <CardTitle>{garden.name}</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-        ))}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {gardens.map((garden) => (
             <Link key={garden.id} href={`/garden/${garden.id}`}>
               <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
