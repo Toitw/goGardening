@@ -2,12 +2,16 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { PlantCard } from "@/components/plant-card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { searchPlants, getPlantDetails } from "@/lib/api";
+import { PlantDetailsDialog } from "@/components/PlantDetailsDialog";
+import { AddPlantDialog } from "@/components/AddPlantDialog";
 
 export default function Plants() {
   const [search, setSearch] = useState("");
-  const [selectedPlant, setSelectedPlant] = useState<string | null>(null);
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
+  const [showAddPlant, setShowAddPlant] = useState(false);
 
   const { data: plants, isLoading } = useQuery({
     queryKey: ["plants", search],
@@ -16,51 +20,72 @@ export default function Plants() {
   });
 
   const { data: plantDetails } = useQuery({
-    queryKey: ["plant", selectedPlant],
-    queryFn: () => getPlantDetails(selectedPlant!),
-    enabled: !!selectedPlant,
+    queryKey: ["plant", selectedPlantId],
+    queryFn: () => getPlantDetails(selectedPlantId!),
+    enabled: !!selectedPlantId,
   });
 
   return (
-    <div className="pb-20 md:pb-0 md:pt-16">
+    <div className="relative pb-20 md:pb-0 md:pt-16">
+      {/* Header with search bar and insights */}
       <div className="p-4 sticky top-0 bg-background z-10">
         <Input
           placeholder="Search plants..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <p className="mt-2 text-sm text-muted-foreground">
+          Tip: Try keywords like "tomato", "basil" or "cucumber" to search for
+          plants.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      {/* Plant list section */}
+      <div className="p-4">
+        <h2 className="text-xl font-bold mb-4">All Plants</h2>
         {isLoading ? (
           <div>Loading...</div>
         ) : (
-          plants?.data.map((plant: any) => (
-            <PlantCard
-              key={plant.id}
-              name={plant.attributes.name}
-              image={plant.attributes.main_image_path}
-              sunlight={plant.attributes.sun_requirements}
-              water={plant.attributes.water_requirements}
-              description={plant.attributes.description}
-              onClick={() => setSelectedPlant(plant.id)}
-            />
-          ))
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {plants?.data.map((plant: any) => (
+              <PlantCard
+                key={plant.id}
+                name={plant.attributes.name}
+                image={plant.attributes.main_image_path}
+                sunlight={plant.attributes.sun_requirements}
+                water={plant.attributes.water_requirements}
+                description={plant.attributes.description}
+                onClick={() => setSelectedPlantId(plant.id)}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      <Dialog open={!!selectedPlant} onOpenChange={() => setSelectedPlant(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {plantDetails?.data.attributes.name}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="prose prose-sm">
-            <p>{plantDetails?.data.attributes.description}</p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Plant Details Dialog */}
+      {plantDetails && selectedPlantId && (
+        <PlantDetailsDialog
+          plant={plantDetails.data}
+          onClose={() => setSelectedPlantId(null)}
+        />
+      )}
+
+      {/* Add Plant Dialog */}
+      <AddPlantDialog
+        open={showAddPlant}
+        onClose={() => setShowAddPlant(false)}
+      />
+
+      {/* Floating "Add Plant" Button */}
+      <Button
+        variant="primary"
+        size="lg"
+        className="fixed bottom-8 right-8 rounded-full shadow-lg flex items-center gap-2"
+        onClick={() => setShowAddPlant(true)}
+      >
+        <Plus className="w-6 h-6" />
+        <span className="hidden md:inline">Add Plant</span>
+      </Button>
     </div>
   );
 }
