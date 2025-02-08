@@ -40,6 +40,17 @@ function Router() {
         
         return <Garden />;
       }} />
+      <ProtectedRoute path="/garden/new" component={() => {
+        const { user } = useAuth();
+        
+        // Redirect to onboarding if user hasn't completed setup
+        if (!user?.gardenSpace) {
+          return <Redirect to="/onboarding" />;
+        }
+        
+        const NewGarden = require('./pages/garden/new').default;
+        return <NewGarden />;
+      }} />
       <ProtectedRoute path="/plants" component={Plants} />
       <ProtectedRoute path="/settings" component={Settings} />
       <Route component={NotFound} />
