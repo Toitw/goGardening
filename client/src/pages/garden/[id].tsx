@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { GardenGrid } from "@/components/garden-grid";
@@ -14,18 +15,32 @@ export default function GardenDetail() {
   const { data: garden, isLoading, error } = useQuery({
     queryKey: ["garden", gardenId],
     queryFn: async () => {
-      const numericId = parseInt(gardenId);
-      if (isNaN(numericId)) {
-        throw new Error('Invalid garden ID');
-      }
-      const response = await fetch(`/api/gardens/${numericId}`);
+      const response = await fetch(`/api/gardens/${gardenId}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Garden not found');
+        }
         throw new Error('Failed to fetch garden');
       }
       return response.json();
     },
-    enabled: !!gardenId,
+    enabled: !!gardenId && !!user,
   });
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="text-center">Please log in to view this garden</div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -70,7 +85,6 @@ export default function GardenDetail() {
           <DialogHeader>
             <DialogTitle>Add Plant</DialogTitle>
           </DialogHeader>
-          {/* Plant selection UI would go here */}
         </DialogContent>
       </Dialog>
     </div>
