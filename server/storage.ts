@@ -5,12 +5,7 @@ import bcryptjs from "bcryptjs";
 
 export const storage = {
   async deleteTestUsers() {
-    await db.delete(users)
-      .where(eq(users.username, "test"))
-      .where(eq(users.username, "test1"))
-      .where(eq(users.username, "test2"))
-      .where(eq(users.username, "test3"))
-      .where(eq(users.username, "test4"));
+    await db.delete(users).where(eq(users.username, "test"));
   },
 
   async verifyPassword(password: string, hashedPassword: string) {
