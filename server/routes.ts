@@ -28,8 +28,13 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.post("/api/gardens", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
     try {
-      const { userId, name, width, length } = req.body;
+      const { id: userId } = req.user as any;
+      const { name, width, length } = req.body;
       const columns = Math.ceil(width / 30);
       const rows = Math.ceil(length / 30);
       const gridData = Array(rows * columns).fill(null);
@@ -54,6 +59,10 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.get("/api/gardens", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
     try {
       const { id } = req.user as any;
       console.log('Fetching gardens for userId:', id);
