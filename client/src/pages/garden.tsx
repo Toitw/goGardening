@@ -1,7 +1,8 @@
+
 import { useParams, Link } from "wouter";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Sprout } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 
@@ -24,6 +25,29 @@ export default function Garden() {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
         <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  if (gardens.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Sprout className="w-12 h-12 mx-auto text-primary mb-4" />
+            <CardTitle>Welcome to Your Garden Journey</CardTitle>
+            <CardDescription className="mt-2">
+              Start your gardening adventure by creating your first garden space. 
+              Plan, grow, and nurture your plants in a personalized environment.
+            </CardDescription>
+            <Link href="/garden/new">
+              <Button className="w-full mt-6">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Garden
+              </Button>
+            </Link>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
