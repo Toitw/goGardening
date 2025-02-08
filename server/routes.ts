@@ -117,7 +117,21 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const garden = await storage.updateGarden(parseInt(req.params.id), req.body.gridData);
+      const { id: userId } = req.user as any;
+      const gardenId = parseInt(req.params.id);
+
+      console.log('Updating garden:', {
+        userId,
+        gardenId,
+        gridData: req.body.gridData
+      });
+
+      const garden = await storage.updateGarden(gardenId, userId, req.body.gridData);
+      
+      if (!garden) {
+        return res.status(404).json({ error: "Garden not found" });
+      }
+
       res.json(garden);
     } catch (error) {
       console.error('Garden update error:', error);
