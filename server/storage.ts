@@ -63,8 +63,7 @@ export const storage = {
     const [garden] = await db.select()
       .from(gardens)
       .where(eq(gardens.id, gardenId))
-      .where(eq(gardens.userId, userId))
-      .limit(1);
+      .where(eq(gardens.userId, userId));
     return garden;
   },
 
