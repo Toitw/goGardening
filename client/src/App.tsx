@@ -59,14 +59,14 @@ function Router() {
         }}
       />
       <ProtectedRoute
-        path="/garden/:id"
+        path="/garden/new"
         component={() => {
           const { user } = useAuth();
           const [Component, setComponent] =
             React.useState<React.ComponentType | null>(null);
 
           React.useEffect(() => {
-            import("./pages/garden/[id]").then((module) => {
+            import("./pages/garden/new").then((module) => {
               setComponent(() => module.default);
             });
           }, []);
@@ -83,14 +83,14 @@ function Router() {
         }}
       />
       <ProtectedRoute
-        path="/garden/new"
+        path="/garden/:id"
         component={() => {
           const { user } = useAuth();
           const [Component, setComponent] =
             React.useState<React.ComponentType | null>(null);
 
           React.useEffect(() => {
-            import("./pages/garden/new").then((module) => {
+            import("./pages/garden/[id]").then((module) => {
               setComponent(() => module.default);
             });
           }, []);
