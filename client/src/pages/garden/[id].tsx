@@ -7,14 +7,14 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function GardenDetail() {
-  const params = useParams();
-  const gardenId = params[0]; // wouter passes params as array indexes
+  const { id: gardenId } = useParams();
   const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
   const { user } = useAuth();
 
   const { data: garden, isLoading, error } = useQuery({
     queryKey: ["garden", gardenId],
     queryFn: async () => {
+      if (!gardenId) throw new Error("Garden ID is required");
       const response = await fetch(`/api/gardens/${gardenId}`, {
         headers: {
           'Accept': 'application/json',
