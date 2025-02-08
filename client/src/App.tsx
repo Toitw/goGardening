@@ -14,7 +14,7 @@ import Onboarding from "@/pages/onboarding";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 // Assume NewGardenPage component exists elsewhere
-import NewGardenPage from "@/pages/new-garden-page"; // Placeholder
+import NewGardenPage from "@/pages/garden/new";
 
 
 function Router() {
