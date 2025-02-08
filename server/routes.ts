@@ -114,8 +114,6 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ error: "Failed to fetch garden" });
     }
   });
-      return res.status(401).json({ error: "Not authenticated" });
-    }
 
     try {
       const { id: userId } = req.user as any;
