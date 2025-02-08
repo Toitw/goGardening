@@ -44,15 +44,21 @@ export const storage = {
     return user;
   },
 
-  async createGarden(data: any) {
-    const [garden] = await db.insert(gardens).values(data).returning();
+  async createGarden(data: { userId: number; name: string; width: number; length: number; gridData: any[] }) {
+    const [garden] = await db.insert(gardens).values({
+      userId: data.userId,
+      name: data.name,
+      width: data.width,
+      length: data.length,
+      gridData: data.gridData,
+    }).returning();
     return garden;
   },
 
   async getGarden(userId: number) {
-    const garden = await db.query.gardens.findFirst({
-      where: eq(gardens.userId, userId),
-    });
+    const [garden] = await db.select()
+      .from(gardens)
+      .where(eq(gardens.userId, userId));
     return garden;
   },
 
