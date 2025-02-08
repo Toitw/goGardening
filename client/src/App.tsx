@@ -35,11 +35,22 @@ function Router() {
         }}
       />
       <ProtectedRoute
+        path="/garden/new"
+        component={() => {
+          const { user } = useAuth();
+          
+          if (!user?.gardenSpace) {
+            return <Redirect to="/onboarding" />;
+          }
+
+          return React.lazy(() => import("./pages/garden/new"));
+        }}
+      />
+      <ProtectedRoute
         path="/garden"
         component={() => {
           const { user } = useAuth();
 
-          // Redirect to onboarding if user hasn't completed setup
           if (!user?.gardenSpace) {
             return <Redirect to="/onboarding" />;
           }
