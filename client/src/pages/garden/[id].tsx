@@ -26,6 +26,7 @@ export default function GardenDetail() {
       try {
 
       const response = await fetch(`/api/gardens/${gardenId}`, {
+        credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',

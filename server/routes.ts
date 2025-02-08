@@ -71,7 +71,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.get("/api/gardens/:id", async (req, res) => {
+  app.get("/api/gardens/:gardenId", async (req, res) => {
     console.log('Garden fetch request:', {
       params: req.params,
       isAuthenticated: req.isAuthenticated(),
@@ -85,7 +85,7 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const { id: userId } = req.user as any;
-      const gardenId = parseInt(req.params.id);
+      const gardenId = parseInt(req.params.gardenId);
 
       console.log('Processing garden request:', {
         userId,
@@ -94,7 +94,7 @@ export function registerRoutes(app: Express): Server {
       });
 
       if (isNaN(gardenId)) {
-        console.log('Invalid garden ID format:', req.params.id);
+        console.log('Invalid garden ID format:', req.params.gardenId);
         return res.status(400).json({ error: "Invalid garden ID" });
       }
 
