@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
-import { Navigate } from 'react-router-dom'; // Added import for useNavigate
+import { Redirect } from 'wouter';
 
 
 type LoginData = {
@@ -49,7 +49,7 @@ export default function AuthPage() {
 
   // Fixed redirect logic to prevent state update warnings
   if (user) {
-    return <Navigate to="/garden" />;
+    return <Redirect to="/garden" />;
   }
 
   return (
