@@ -1,4 +1,3 @@
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -13,13 +12,13 @@ export function registerRoutes(app: Express): Server {
     try {
       const { id } = req.user as any;
       const { location, gardenSpace, sunlightHours } = req.body;
-      
+
       const updatedUser = await storage.updateUser(id, {
         location,
         gardenSpace,
         sunlightHours: Number(sunlightHours),
       });
-      
+
       res.json(updatedUser);
     } catch (error: any) {
       console.error('Onboarding error:', error);
@@ -30,7 +29,21 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/gardens", async (req, res) => {
     try {
-      const gardenData = insertGardenSchema.parse(req.body);
+      const { userId, name, width, length } = req.body;
+      const columns = Math.ceil(width / 30);
+      const rows = Math.ceil(length / 30);
+      const gridData = Array(rows * columns).fill(null);
+
+      const gardenData = {
+        userId,
+        name,
+        width,
+        length,
+        gridData
+      };
+
+      console.log('Creating garden with data:', gardenData);
+
       const garden = await storage.createGarden(gardenData);
       res.json(garden);
     } catch (error) {

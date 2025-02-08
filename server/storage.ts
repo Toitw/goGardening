@@ -5,12 +5,7 @@ import bcryptjs from "bcryptjs";
 
 export const storage = {
   async deleteTestUsers() {
-    await db.delete(users)
-      .where(eq(users.username, "test"))
-      .where(eq(users.username, "test1"))
-      .where(eq(users.username, "test2"))
-      .where(eq(users.username, "test3"))
-      .where(eq(users.username, "test4"));
+    await db.delete(users).where(eq(users.username, "test"));
   },
 
   async verifyPassword(password: string, hashedPassword: string) {
@@ -45,13 +40,16 @@ export const storage = {
   },
 
   async createGarden(data: { userId: number; name: string; width: number; length: number; gridData: any[] }) {
-    const [garden] = await db.insert(gardens).values({
-      userId: data.userId,
-      name: data.name,
-      width: data.width,
-      length: data.length,
-      gridData: data.gridData,
-    }).returning();
+    console.log('Creating garden in storage with data:', data);
+    const [garden] = await db.insert(gardens)
+      .values({
+        userId: data.userId,
+        name: data.name,
+        width: data.width,
+        length: data.length,
+        gridData: data.gridData,
+      })
+      .returning();
     return garden;
   },
 
@@ -62,7 +60,7 @@ export const storage = {
     return garden;
   },
 
-  async updateGarden(id: number, gridData: any) {
+  async updateGarden(id: number, gridData: any[]) {
     const [garden] = await db.update(gardens)
       .set({ gridData })
       .where(eq(gardens.id, id))
