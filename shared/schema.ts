@@ -47,12 +47,17 @@ export const insertUserSchema = createInsertSchema(users).pick({
   sunlightHours: z.number().min(0).max(24),
 });
 
-export const insertGardenSchema = createInsertSchema(gardens).pick({
-  userId: true,
-  name: true,
-  width: true,
-  length: true,
-  gridData: true,
+export const insertGardenSchema = createInsertSchema(gardens).extend({
+  width: z.number()
+    .int("Width must be a whole number")
+    .min(30, "Minimum width is 30cm")
+    .max(500, "Maximum width is 500cm"),
+  length: z.number()
+    .int("Length must be a whole number")
+    .min(30, "Minimum length is 30cm")
+    .max(500, "Maximum length is 500cm"),
+  name: z.string().min(1, "Garden name is required"),
+  gridData: z.array(z.any()).optional().default([]),
 });
 
 export const locationSchema = z.object({
