@@ -14,7 +14,11 @@ export default function GardenDetail() {
   const { data: garden, isLoading } = useQuery({
     queryKey: ["/api/gardens", gardenId],
     queryFn: async () => {
-      const response = await fetch(`/api/gardens/${gardenId}`);
+      const numericId = parseInt(gardenId);
+      if (isNaN(numericId)) {
+        throw new Error('Invalid garden ID');
+      }
+      const response = await fetch(`/api/gardens/${numericId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch garden');
       }
