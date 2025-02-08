@@ -47,15 +47,8 @@ export default function AuthPage() {
     },
   });
 
-  // Redirect using useEffect to avoid state updates during render
-  useEffect(() => {
-    if (user) {
-      setLocation("/garden");
-    }
-  }, [user, setLocation]);
-
   if (user) {
-    return null;
+    return <Redirect to="/garden" />;
   }
 
   return (
