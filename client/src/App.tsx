@@ -18,47 +18,47 @@ import { useAuth } from "@/hooks/use-auth";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={() => <Redirect to="/gardens" />} />
+      <Route path="/" component={() => <Redirect to="/garden" />} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/onboarding" component={() => {
         const location = useLocation()[0];
         const { user } = useAuth();
-
+        
         // Redirect to garden if user has already completed onboarding
         if (user?.gardenSpace && location === '/onboarding') {
-          return <Redirect to="/gardens" />;
+          return <Redirect to="/garden" />;
         }
-
+        
         return <Onboarding />;
       }} />
-      <ProtectedRoute path="/gardens" component={() => {
+      <ProtectedRoute path="/garden" component={() => {
         const { user } = useAuth();
-
+        
         // Redirect to onboarding if user hasn't completed setup
         if (!user?.gardenSpace) {
           return <Redirect to="/onboarding" />;
         }
-
+        
         return <Garden />;
       }} />
-      <ProtectedRoute path="/gardens/new" component={() => {
+      <ProtectedRoute path="/garden/new" component={() => {
         const { user } = useAuth();
         const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-
+        
         React.useEffect(() => {
-          import('./pages/gardens/new').then(module => {
+          import('./pages/garden/new').then(module => {
             setComponent(() => module.default);
           });
         }, []);
-
+        
         if (!user?.gardenSpace) {
           return <Redirect to="/onboarding" />;
         }
-
+        
         if (!Component) {
           return <div>Loading...</div>;
         }
-
+        
         return <Component />;
       }} />
       <ProtectedRoute path="/plants" component={Plants} />
