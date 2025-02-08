@@ -41,6 +41,26 @@ function Router() {
         
         return <Garden />;
       }} />
+      <ProtectedRoute path="/gardens/:id" component={() => {
+        const { user } = useAuth();
+        const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
+        
+        React.useEffect(() => {
+          import('./pages/garden/[id]').then(module => {
+            setComponent(() => module.default);
+          });
+        }, []);
+        
+        if (!user?.gardenSpace) {
+          return <Redirect to="/onboarding" />;
+        }
+        
+        if (!Component) {
+          return <div>Loading...</div>;
+        }
+        
+        return <Component />;
+      }} />
       <ProtectedRoute path="/garden/new" component={() => {
         const { user } = useAuth();
         const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
