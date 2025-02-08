@@ -30,16 +30,14 @@ export default function Garden() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">My Gardens</h1>
-        <Link href="/garden/new">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Garden
-          </Button>
-        </Link>
-      </div>
+    <div className="container py-8 relative">
+      <h1 className="text-2xl font-bold mb-8">My Gardens</h1>
+      <Link href="/garden/new" className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-50">
+        <Button size="lg" className="rounded-full shadow-lg">
+          <Plus className="w-6 h-6" />
+          <span className="ml-2 md:inline">Create Garden</span>
+        </Button>
+      </Link>
 
       {gardens.length === 0 ? (
         <Card className="w-full max-w-md mx-auto">
