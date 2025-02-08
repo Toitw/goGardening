@@ -47,8 +47,14 @@ export default function AuthPage() {
     },
   });
 
+  useEffect(() => {
+    if (user) {
+      setLocation("/garden");
+    }
+  }, [user, setLocation]);
+
   if (user) {
-    return <Redirect to="/garden" />;
+    return null;
   }
 
   return (

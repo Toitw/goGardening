@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./ui/card";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
@@ -17,7 +17,7 @@ const createGardenSchema = z.object({
 });
 
 export function CreateGardenForm() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const form = useForm({
     resolver: zodResolver(createGardenSchema),
     defaultValues: {
@@ -42,7 +42,7 @@ export function CreateGardenForm() {
       }
 
       const garden = await response.json();
-      navigate(`/garden/${garden.id}`);
+      setLocation(`/garden/${garden.id}`);
     } catch (error) {
       console.error("Failed to create garden:", error);
     }
