@@ -74,6 +74,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/gardens/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const { id: userId } = req.user as any;
+      const gardenId = parseInt(req.params.id);
+
+      if (isNaN(gardenId)) {
+        return res.status(400).json({ error: "Invalid garden ID" });
+      }
+
+      const garden = await storage.getGardenById(gardenId, userId);
+      
+      if (!garden) {
+        return res.status(404).json({ error: "Garden not found" });
+      }
+
+      res.json(garden);
+    } catch (error) {
+      console.error('Error fetching garden:', error);
+      res.status(500).json({ error: "Failed to fetch garden" });
+    }
+  });
+
   app.get("/api/gardens/:gardenId", async (req, res) => {
     if (!req.isAuthenticated()) {
       console.log('Unauthorized garden access attempt');
