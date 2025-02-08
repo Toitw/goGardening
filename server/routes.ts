@@ -47,8 +47,6 @@ export function registerRoutes(app: Express): Server {
         gridData
       };
 
-      console.log('Creating garden with data:', gardenData);
-
       const garden = await storage.createGarden(gardenData);
       res.json(garden);
     } catch (error) {
@@ -65,7 +63,6 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const { id } = req.user as any;
-      console.log('Fetching gardens for userId:', id);
       const gardens = await storage.getGardens(id);
       res.json(gardens);
     } catch (error) {
@@ -82,68 +79,17 @@ export function registerRoutes(app: Express): Server {
     try {
       const { id: userId } = req.user as any;
       const gardenId = parseInt(req.params.id);
-      
-      console.log('Garden request details:', {
-        authUserId: userId,
-        requestedGardenId: gardenId,
-        params: req.params,
-        isValidId: !isNaN(gardenId)
-      });
 
       if (isNaN(gardenId)) {
-        console.log('Invalid garden ID format:', req.params.id);
         return res.status(400).json({ error: "Invalid garden ID" });
       }
 
-      console.log('Fetching garden:', gardenId, 'for user:', userId);
       const garden = await storage.getGardenById(gardenId, userId);
-      
+
       if (!garden) {
-        console.log('No garden found. Details:', {
-          userId,
-          gardenId,
-          authenticated: req.isAuthenticated()
-        });
         return res.status(404).json({ error: "Garden not found" });
       }
 
-      console.log('Garden found:', garden);
-      res.json(garden);
-    } catch (error) {
-      console.error('Error fetching garden:', error);
-      res.status(500).json({ error: "Failed to fetch garden" });
-    }
-  });
-
-    try {
-      const { id: userId } = req.user as any;
-      const gardenId = parseInt(req.params.gardenId);
-      
-      console.log('Garden request details:', {
-        authUserId: userId,
-        requestedGardenId: gardenId,
-        params: req.params,
-        isValidId: !isNaN(gardenId)
-      });
-
-      if (isNaN(gardenId)) {
-        console.log('Invalid garden ID format:', req.params.gardenId);
-        return res.status(400).json({ error: "Invalid garden ID" });
-      }
-
-      console.log('Fetching garden:', gardenId, 'for user:', userId);
-      const garden = await storage.getGardenById(gardenId, userId);
-      
-      if (!garden) {
-        console.log('No garden found. Details:', {
-          userId,
-          gardenId,
-          authenticated: req.isAuthenticated()
-        });
-        return res.status(404).json({ error: "Garden not found" });
-      }
-
-      console.log('Garden found:', garden);
       res.json(garden);
     } catch (error) {
       console.error('Error fetching garden:', error);
@@ -152,6 +98,10 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.patch("/api/gardens/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
     try {
       const garden = await storage.updateGarden(parseInt(req.params.id), req.body.gridData);
       res.json(garden);
