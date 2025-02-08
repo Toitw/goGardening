@@ -40,16 +40,25 @@ function Router() {
         
         return <Garden />;
       }} />
-      <ProtectedRoute path="/garden/new" component={async () => {
+      <ProtectedRoute path="/garden/new" component={() => {
         const { user } = useAuth();
+        const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
         
-        // Redirect to onboarding if user hasn't completed setup
+        React.useEffect(() => {
+          import('./pages/garden/new').then(module => {
+            setComponent(() => module.default);
+          });
+        }, []);
+        
         if (!user?.gardenSpace) {
           return <Redirect to="/onboarding" />;
         }
         
-        const NewGarden = (await import('./pages/garden/new')).default;
-        return <NewGarden />;
+        if (!Component) {
+          return <div>Loading...</div>;
+        }
+        
+        return <Component />;
       }} />
       <ProtectedRoute path="/plants" component={Plants} />
       <ProtectedRoute path="/settings" component={Settings} />

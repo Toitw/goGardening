@@ -45,9 +45,9 @@ export default function NewGarden() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/gardens"] });
-      setLocation("/garden");
+      setLocation(`/garden/${data.id}`);
     },
   });
 
