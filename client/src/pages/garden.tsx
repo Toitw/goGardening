@@ -39,6 +39,18 @@ export default function Garden() {
 
   const { data: garden, isLoading } = useQuery({
     queryKey: ["/api/gardens", user?.id],
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/gardens/${user?.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch garden');
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching garden:', error);
+        throw error;
+      }
+    },
     enabled: !!user?.id,
   });
 
@@ -47,13 +59,15 @@ export default function Garden() {
       const columns = Math.ceil(data.width / 30);
       const rows = Math.ceil(data.length / 30);
 
-      return apiRequest("POST", "/api/gardens", {
+      const response = await apiRequest("POST", "/api/gardens", {
         name: data.name,
         userId: user!.id,
         width: data.width,
         length: data.length,
         gridData: Array(rows * columns).fill(null),
       });
+
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/gardens", user?.id] });
