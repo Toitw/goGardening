@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -47,9 +47,15 @@ export default function AuthPage() {
     },
   });
 
-  // Fixed redirect logic to prevent state update warnings
+  // Redirect using useEffect to avoid state updates during render
+  useEffect(() => {
+    if (user) {
+      setLocation("/garden");
+    }
+  }, [user, setLocation]);
+
   if (user) {
-    return <Redirect to="/garden" />;
+    return null;
   }
 
   return (
