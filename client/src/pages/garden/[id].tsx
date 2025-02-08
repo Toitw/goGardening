@@ -152,6 +152,7 @@ export default function GardenDetail() {
                   });
                   if (response.ok) {
                     await queryClient.invalidateQueries({ queryKey: ["/api/gardens"] });
+                    await queryClient.invalidateQueries({ queryKey: ["garden", gardenId] });
                     setLocation('/garden');
                   }
                 }}
