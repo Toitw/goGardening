@@ -53,16 +53,29 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.get("/api/gardens/:userId", async (req, res) => {
+  app.get("/api/gardens", async (req, res) => {
     try {
-      console.log('Fetching garden for userId:', req.params.userId);
-      const garden = await storage.getGarden(parseInt(req.params.userId));
+      const { id } = req.user as any;
+      console.log('Fetching gardens for userId:', id);
+      const gardens = await storage.getGardens(id);
+      res.json(gardens);
+    } catch (error) {
+      console.error('Error fetching gardens:', error);
+      res.status(500).json({ error: "Failed to fetch gardens" });
+    }
+  });
+
+  app.get("/api/gardens/:gardenId", async (req, res) => {
+    try {
+      const { id: userId } = req.user as any;
+      const gardenId = parseInt(req.params.gardenId);
+      console.log('Fetching garden:', gardenId);
+      const garden = await storage.getGardenById(gardenId, userId);
       if (!garden) {
-        console.log('No garden found for userId:', req.params.userId);
+        console.log('No garden found');
         res.status(404).json({ error: "Garden not found" });
         return;
       }
-      console.log('Found garden:', garden);
       res.json(garden);
     } catch (error) {
       console.error('Error fetching garden:', error);

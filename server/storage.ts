@@ -53,9 +53,16 @@ export const storage = {
     return garden;
   },
 
-  async getGarden(userId: number) {
+  async getGardens(userId: number) {
+    return await db.select()
+      .from(gardens)
+      .where(eq(gardens.userId, userId));
+  },
+
+  async getGardenById(gardenId: number, userId: number) {
     const [garden] = await db.select()
       .from(gardens)
+      .where(eq(gardens.id, gardenId))
       .where(eq(gardens.userId, userId));
     return garden;
   },

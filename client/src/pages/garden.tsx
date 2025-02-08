@@ -13,6 +13,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
+import { useParams, Link } from "wouter";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle } from "lucide-react";
+
 
 const createGardenSchema = z.object({
   name: z.string().min(1, "Garden name is required"),
@@ -27,6 +31,9 @@ export default function Garden() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const params = useParams();
+  const gardenId = params[0];
+
 
   const form = useForm<CreateGardenData>({
     resolver: zodResolver(createGardenSchema),
@@ -38,10 +45,10 @@ export default function Garden() {
   });
 
   const { data: garden, isLoading } = useQuery({
-    queryKey: ["/api/gardens", user?.id],
+    queryKey: ["/api/gardens", gardenId],
     queryFn: async () => {
       try {
-        const response = await fetch(`/api/gardens/${user?.id}`);
+        const response = await fetch(`/api/gardens/${gardenId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch garden');
         }
@@ -51,7 +58,7 @@ export default function Garden() {
         throw error;
       }
     },
-    enabled: !!user?.id,
+    enabled: !!gardenId && !!user?.id,
   });
 
   const createGarden = useMutation({
@@ -92,7 +99,7 @@ export default function Garden() {
     createGarden.mutate(data);
   };
 
-  if (isLoading) {
+  if (isLoading && gardenId) {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
         <div className="text-center">Loading...</div>
@@ -100,90 +107,18 @@ export default function Garden() {
     );
   }
 
-  if (!garden) {
+  if (!garden && gardenId) {
+    return <p>Garden not found</p>;
+  }
+
+  if (!gardenId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] gap-4">
-        <h1 className="text-2xl font-bold">Welcome to Your Garden</h1>
-        <p className="text-muted-foreground text-center max-w-md">
-          You haven't created a garden yet. Start by creating one to begin planning your urban garden.
-        </p>
-        <Button onClick={() => setShowCreateDialog(true)}>Create Garden</Button>
-
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Your Garden</DialogTitle>
-              <DialogDescription>
-                Set up your garden space. Measurements are in centimeters.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Garden Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="My Garden" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="width"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Width (cm)</FormLabel>
-                      <FormControl>
-                        <Slider
-                          min={30}
-                          max={500}
-                          step={30}
-                          value={[field.value]}
-                          onValueChange={([value]) => field.onChange(value)}
-                          className="py-4"
-                        />
-                      </FormControl>
-                      <p className="text-sm text-muted-foreground text-right">{field.value} cm</p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="length"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Length (cm)</FormLabel>
-                      <FormControl>
-                        <Slider
-                          min={30}
-                          max={500}
-                          step={30}
-                          value={[field.value]}
-                          onValueChange={([value]) => field.onChange(value)}
-                          className="py-4"
-                        />
-                      </FormControl>
-                      <p className="text-sm text-muted-foreground text-right">{field.value} cm</p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={createGarden.isPending}>
-                  {createGarden.isPending ? "Creating..." : "Create Garden"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+      <p>Select a garden</p>
       </div>
-    );
+    )
   }
+
 
   return (
     <div className="pb-20 md:pb-0 md:pt-16">
@@ -207,6 +142,67 @@ export default function Garden() {
           {/* Plant selection UI would go here */}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+
+import { useQuery } from "@tanstack/react-query";
+import { useParams, Link } from "wouter";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+
+export function GardenList() {
+  const { user } = useAuth();
+
+  const { data: gardens, isLoading } = useQuery({
+    queryKey: ["/api/gardens"],
+    queryFn: async () => {
+      const response = await fetch("/api/gardens");
+      if (!response.ok) {
+        throw new Error('Failed to fetch gardens');
+      }
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {gardens?.map((garden: any) => (
+          <Card key={garden.id} className="hover:bg-accent/50 transition-colors">
+            <Link href={`/garden/${garden.id}`}>
+              <CardHeader className="cursor-pointer">
+                <CardTitle>{garden.name}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {garden.width}cm × {garden.length}cm
+                </p>
+              </CardHeader>
+            </Link>
+          </Card>
+        ))}
+        <Card className="hover:bg-accent/50 transition-colors">
+          <Link href="/garden/new">
+            <CardHeader className="cursor-pointer h-full flex items-center justify-center">
+              <Button variant="ghost" className="w-full h-full">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Garden
+              </Button>
+            </CardHeader>
+          </Link>
+        </Card>
+      </div>
     </div>
   );
 }
