@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "wouter";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,7 @@ export default function Garden() {
               Start your gardening adventure by creating your first garden space. 
               Plan, grow, and nurture your plants in a personalized environment.
             </CardDescription>
-            <Link href="/garden/new">
+            <Link href="/gardens/new">
               <Button className="w-full mt-6">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Garden
@@ -56,7 +55,7 @@ export default function Garden() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">My Gardens</h1>
-        <Link href="/garden/new">
+        <Link href="/gardens/new">
           <Button>
             <Plus className="w-4 h-4 mr-2" />
             New Garden
