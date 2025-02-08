@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
-export default function GardenDetail() {
+export default function GardenDetailPage() {
   const { id: gardenId } = useParams();
   const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
   const { user } = useAuth();
