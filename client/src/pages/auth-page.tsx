@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
+import React from 'react'; // Added React import
 
 type LoginData = {
   username: string;
@@ -45,8 +46,13 @@ export default function AuthPage() {
     },
   });
 
+  React.useEffect(() => { // Added useEffect hook to handle redirection
+    if (user) {
+      setLocation("/garden");
+    }
+  }, [user, setLocation]);
+
   if (user) {
-    setLocation("/garden");
     return null;
   }
 
@@ -97,7 +103,7 @@ export default function AuthPage() {
                     />
                     <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
                       {loginMutation.isPending ? (
-                        <span>Loading...</span> // Added a loading indicator.  Original had a Loader2 component.
+                        <span>Loading...</span>
                       ) : (
                         "Login"
                       )}
@@ -136,7 +142,7 @@ export default function AuthPage() {
                     />
                     <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
                       {registerMutation.isPending ? (
-                        <span>Loading...</span> // Added a loading indicator
+                        <span>Loading...</span>
                       ) : (
                         "Register"
                       )}
