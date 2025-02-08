@@ -38,30 +38,6 @@ function Router() {
         path="/garden/new"
         component={() => {
           const { user } = useAuth();
-          
-          if (!user?.gardenSpace) {
-            return <Redirect to="/onboarding" />;
-          }
-
-          return React.lazy(() => import("./pages/garden/new"));
-        }}
-      />
-      <ProtectedRoute
-        path="/garden"
-        component={() => {
-          const { user } = useAuth();
-
-          if (!user?.gardenSpace) {
-            return <Redirect to="/onboarding" />;
-          }
-
-          return <Garden />;
-        }}
-      />
-      <ProtectedRoute
-        path="/garden/new"
-        component={() => {
-          const { user } = useAuth();
           const [Component, setComponent] =
             React.useState<React.ComponentType | null>(null);
 
@@ -80,6 +56,18 @@ function Router() {
           }
 
           return <Component />;
+        }}
+      />
+      <ProtectedRoute
+        path="/garden"
+        component={() => {
+          const { user } = useAuth();
+
+          if (!user?.gardenSpace) {
+            return <Redirect to="/onboarding" />;
+          }
+
+          return <Garden />;
         }}
       />
       <ProtectedRoute
