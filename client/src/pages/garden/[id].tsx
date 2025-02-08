@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { GardenGrid } from "@/components/garden-grid";
@@ -7,20 +6,21 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function GardenDetail() {
-  const { id } = useParams();
+  const params = useParams();
+  const gardenId = params[0]; // wouter passes params as array indexes
   const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
   const { user } = useAuth();
 
   const { data: garden, isLoading } = useQuery({
-    queryKey: ["/api/gardens", id],
+    queryKey: ["/api/gardens", gardenId],
     queryFn: async () => {
-      const response = await fetch(`/api/gardens/${id}`);
+      const response = await fetch(`/api/gardens/${gardenId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch garden');
       }
       return response.json();
     },
-    enabled: !!user?.id && !!id,
+    enabled: !!user?.id && !!gardenId,
   });
 
   if (isLoading) {
