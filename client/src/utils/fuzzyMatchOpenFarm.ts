@@ -1,4 +1,4 @@
-import Fuse from 'fuse.js';
+import Fuse from "fuse.js";
 
 // Define a more specific type for the OpenFarm data
 interface OpenFarmCrop {
@@ -22,24 +22,31 @@ async function loadCropData(): Promise<OpenFarmCrop[]> {
   }
 
   try {
-    console.log('Attempting to load OpenFarm crop data...');
-    const response = await fetch('/data/openfarmCrops.json');
+    console.log("Attempting to load OpenFarm crop data...");
+    const response = await fetch("/data/openfarmCrops.json");
     if (!response.ok) {
-      throw new Error(`Failed to load crop data: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to load crop data: ${response.status} ${response.statusText}`,
+      );
     }
     const data = await response.json();
-    console.log(`Successfully loaded ${Array.isArray(data) ? data.length : 0} crops`);
+    console.log(
+      `Successfully loaded ${Array.isArray(data) ? data.length : 0} crops`,
+    );
     cropDataCache = Array.isArray(data) ? data : [];
     return cropDataCache;
   } catch (error) {
-    console.error('Failed to load OpenFarm crop data:', error);
+    console.error("Failed to load OpenFarm crop data:", error);
     return [];
   }
 }
 
 const fuseOptions = {
-  keys: ['attributes.name'],
-  threshold: 0.3, // Lower threshold means more strict matching
+  keys: [
+    { name: "attributes.name", weight: 0.7 },
+    { name: "attributes.slug", weight: 0.3 },
+  ],
+  threshold: 0.6, // Increased threshold to allow more tolerance in matching
   includeScore: true,
 };
 
@@ -54,7 +61,9 @@ async function getFuseInstance(): Promise<Fuse<OpenFarmCrop>> {
   return fuseInstance;
 }
 
-export async function getOpenFarmImageFor(plantName: string): Promise<string | null> {
+export async function getOpenFarmImageFor(
+  plantName: string,
+): Promise<string | null> {
   if (!plantName) return null;
 
   try {
@@ -62,7 +71,7 @@ export async function getOpenFarmImageFor(plantName: string): Promise<string | n
     // Try exact match first
     const crops = await loadCropData();
     const exactMatch = crops.find(
-      (crop) => crop.attributes.name.toLowerCase() === plantName.toLowerCase()
+      (crop) => crop.attributes.name.toLowerCase() === plantName.toLowerCase(),
     );
     if (exactMatch?.attributes.main_image_path) {
       console.log(`Found exact match for ${plantName}`);
@@ -72,16 +81,27 @@ export async function getOpenFarmImageFor(plantName: string): Promise<string | n
     // Try fuzzy match if exact match fails
     const fuse = await getFuseInstance();
     const results = fuse.search(plantName);
-    if (results.length > 0 && results[0].score && results[0].score < 0.4) {
-      const bestMatch = results[0].item;
-      console.log(`Found fuzzy match for ${plantName}: ${bestMatch.attributes.name}`);
-      return bestMatch.attributes.main_image_path || null;
+    if (results.length > 0) {
+      console.log("Fuzzy match results:");
+      results.forEach((result, idx) => {
+        console.log(
+          `${idx}: ${result.item.attributes.name} - score: ${result.score}`,
+        );
+      });
+      // Accept best match if its score is below our threshold (0.6)
+      if (results[0].score !== undefined && results[0].score < 0.6) {
+        const bestMatch = results[0].item;
+        console.log(
+          `Found fuzzy match for ${plantName}: ${bestMatch.attributes.name} (score: ${results[0].score})`,
+        );
+        return bestMatch.attributes.main_image_path || null;
+      }
     }
 
     console.log(`No match found for ${plantName}`);
     return null;
   } catch (error) {
-    console.error('Error finding plant image:', error);
+    console.error("Error finding plant image:", error);
     return null;
   }
 }
