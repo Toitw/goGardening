@@ -1,33 +1,25 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
+import { plantCategories } from "@/data/plantData";
+import { plantDetailsMap } from "@/data/plantDetailsData";
 import { PlantCard } from "@/components/plant-card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { searchPlants, getPlantDetails } from "@/lib/api";
 import { PlantDetailsDialog } from "@/components/PlantDetailsDialog";
 import { AddPlantDialog } from "@/components/AddPlantDialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export default function Plants() {
   const [search, setSearch] = useState("");
   const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
   const [showAddPlant, setShowAddPlant] = useState(false);
 
-  const { data: plants, isLoading } = useQuery({
-    queryKey: ["plants", search],
-    queryFn: () => searchPlants(search),
-    enabled: search.length > 2,
-  });
-
-  const { data: plantDetails } = useQuery({
-    queryKey: ["plant", selectedPlantId],
-    queryFn: () => getPlantDetails(selectedPlantId!),
-    enabled: !!selectedPlantId,
-  });
+  // For now we ignore search filtering and show all plants.
+  // The recommended plants section is a placeholder for future AI LLM integration.
+  const recommendedPlants = plantCategories["Alliums"].slice(0, 2);
 
   return (
     <div className="relative pb-20 md:pb-0 md:pt-16">
-      {/* Header with search bar and insights */}
+      {/* Header with search bar */}
       <div className="p-4 sticky top-0 bg-background z-10">
         <Input
           placeholder="Search plants..."
@@ -35,48 +27,68 @@ export default function Plants() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <p className="mt-2 text-sm text-muted-foreground">
-          Tip: Try keywords like "tomato", "basil" or "cucumber" to search for
-          plants.
+          Tip: Use the search bar to quickly find a plant.
         </p>
       </div>
 
-      {/* Plant list section */}
+      {/* Recommended Plants section (to be updated with AI recommendations later) */}
       <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">All Plants</h2>
-        {isLoading ? (
-          <div>Loading...</div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {plants?.data.map((plant: any) => (
+        <h2 className="text-xl font-bold mb-4">Recommended Plants</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {recommendedPlants.map((plant) => {
+            const details = plantDetailsMap[plant.id];
+            return (
               <PlantCard
                 key={plant.id}
-                name={plant.attributes.name}
-                image={plant.attributes.main_image_path}
-                sunlight={plant.attributes.sun_requirements}
-                water={plant.attributes.water_requirements}
-                description={plant.attributes.description}
+                name={plant.name}
+                image={plant.image}
+                sunlight={details?.attributes?.sun_requirements || "Full Sun"}
+                water={details?.attributes?.water_requirements || "Moderate"}
+                description=""
                 onClick={() => setSelectedPlantId(plant.id)}
               />
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
+      {/* Render each category */}
+      {Object.keys(plantCategories).map((category) => (
+        <div key={category} className="p-4">
+          <h2 className="text-xl font-bold mb-4">{category}</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {plantCategories[category].map((plant) => {
+              const details = plantDetailsMap[plant.id];
+              return (
+                <PlantCard
+                  key={plant.id}
+                  name={plant.name}
+                  image={plant.image}
+                  sunlight={details?.attributes?.sun_requirements || "Full Sun"}
+                  water={details?.attributes?.water_requirements || "Moderate"}
+                  description=""
+                  onClick={() => setSelectedPlantId(plant.id)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
       {/* Plant Details Dialog */}
-      {plantDetails && selectedPlantId && (
+      {selectedPlantId && plantDetailsMap[selectedPlantId] && (
         <PlantDetailsDialog
-          plant={plantDetails.data}
+          plant={plantDetailsMap[selectedPlantId]}
           onClose={() => setSelectedPlantId(null)}
         />
       )}
 
-      {/* Add Plant Dialog */}
       <AddPlantDialog
         open={showAddPlant}
         onClose={() => setShowAddPlant(false)}
       />
 
-      {/* Floating "Add Plant" Button */}
+      {/* Floating Add Plant Button */}
       <Button
         variant="primary"
         size="lg"
