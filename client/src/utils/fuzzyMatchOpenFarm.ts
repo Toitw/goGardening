@@ -42,11 +42,8 @@ async function loadCropData(): Promise<OpenFarmCrop[]> {
 }
 
 const fuseOptions = {
-  keys: [
-    { name: "attributes.common_names", weight: 0.9 },
-    { name: "attributes.name", weight: 0.1 },
-  ],
-  threshold: 0.6,
+  keys: ["attributes.common_names"],
+  threshold: 0.4,
   includeScore: true,
 };
 
@@ -68,19 +65,34 @@ export async function getOpenFarmImageFor(
 
   try {
     console.log(`Looking up image for plant: ${plantName}`);
-    // Try exact match first
+    // Try exact match first with common_names
     const crops = await loadCropData();
     const exactMatch = crops.find(
       (crop) => crop.attributes.common_names?.some(name => name.toLowerCase() === plantName.toLowerCase()),
     );
     if (exactMatch?.attributes.main_image_path) {
-      console.log(`Found exact match for ${plantName}`);
+      console.log(`Found exact match in common_names for ${plantName}`);
       return exactMatch.attributes.main_image_path;
     }
 
-    // Try fuzzy match if exact match fails
+    // Try fuzzy match with common_names
     const fuse = await getFuseInstance();
     const results = fuse.search(plantName);
+    
+    // If no good matches in common_names, try attributes.name
+    if (results.length === 0 || (results[0].score && results[0].score > 0.4)) {
+      console.log(`No good matches in common_names, trying attributes.name for ${plantName}`);
+      const nameMatchFuse = new Fuse(crops, {
+        keys: ["attributes.name"],
+        threshold: 0.4,
+        includeScore: true,
+      });
+      const nameResults = nameMatchFuse.search(plantName);
+      if (nameResults.length > 0 && nameResults[0].score && nameResults[0].score < 0.4) {
+        console.log(`Found match in attributes.name for ${plantName}: ${nameResults[0].item.attributes.name}`);
+        return nameResults[0].item.attributes.main_image_path;
+      }
+    }
     if (results.length > 0) {
       console.log("Fuzzy match results:");
       results.forEach((result, idx) => {
