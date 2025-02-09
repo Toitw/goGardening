@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import PQueue from 'p-queue';
 
 interface OpenFarmCrop {
   type: string;
@@ -16,16 +17,49 @@ interface OpenFarmResponse {
   data: OpenFarmCrop[];
 }
 
-async function fetchOpenFarmData(startPage = 1) {
+async function fetchWithRetry(url: string, retries = 3, baseDelay = 2000): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url);
+
+      // If rate limited, wait longer and retry
+      if (response.status === 429) {
+        const waitTime = baseDelay * Math.pow(2, i + 1); // Exponential backoff
+        console.log(`Rate limited, waiting ${waitTime/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+
+      if (response.ok) return response;
+      throw new Error(`HTTP error! status: ${response.status}`);
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      const waitTime = baseDelay * Math.pow(2, i);
+      console.log(`Retry attempt ${i + 1}/${retries}. Waiting ${waitTime/1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+  throw new Error('Max retries reached');
+}
+
+async function fetchPage(page: number, perPage: number): Promise<OpenFarmCrop[]> {
+  const response = await fetchWithRetry(
+    `https://openfarm.cc/api/v1/crops?per_page=${perPage}&page=${page}`,
+    5, // More retries
+    5000 // Longer base delay
+  );
+  const data: OpenFarmResponse = await response.json();
+  return data.data || [];
+}
+
+async function fetchOpenFarmData(startPage = 1, targetPage = 300) { // Fetch in smaller chunks
   const crops: OpenFarmCrop[] = [];
   let page = startPage;
-  const perPage = 25;
+  const perPage = 25; // Reduced to minimize impact of failed requests
   let hasMoreData = true;
-  const dataDir = path.join(process.cwd(), 'client', 'src', 'data');
+  const dataDir = path.join(process.cwd(), 'client', 'public', 'data');
   const tempFile = path.join(dataDir, 'openfarmCrops.temp.json');
   const finalFile = path.join(dataDir, 'openfarmCrops.json');
-  let retryCount = 0;
-  const maxRetries = 3;
 
   // Create data directory if it doesn't exist
   if (!fs.existsSync(dataDir)) {
@@ -41,73 +75,59 @@ async function fetchOpenFarmData(startPage = 1) {
     console.log(`Resuming from page ${page} (${crops.length} crops loaded)`);
   }
 
+  // Create a queue with reduced concurrency and increased interval
+  const queue = new PQueue({ 
+    concurrency: 2, // Reduced concurrency
+    interval: 2000, // Increased interval between requests
+    intervalCap: 1 // Only 1 request per interval
+  });
+
   console.log('Starting to fetch OpenFarm data...');
   console.log(`Current progress: ${crops.length} crops`);
+  console.log(`Target: pages ${startPage} to ${targetPage}`);
 
-  while (hasMoreData) {
+  while (hasMoreData && page <= targetPage) {
+    const currentPage = page;
     try {
-      console.log(`Fetching page ${page}...`);
-      const response = await fetch(
-        `https://openfarm.cc/api/v1/crops?per_page=${perPage}&page=${page}`
-      );
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          console.log('Rate limited, waiting longer...');
-          await new Promise(resolve => setTimeout(resolve, 10000)); // 10 second wait
-          continue;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: OpenFarmResponse = await response.json();
-
-      if (!data.data || data.data.length === 0) {
-        console.log('No more data available, completing fetch.');
+      const pageCrops = await queue.add(() => fetchPage(currentPage, perPage));
+      if (pageCrops.length === 0) {
         hasMoreData = false;
         break;
       }
+      crops.push(...pageCrops);
+      console.log(`Retrieved ${pageCrops.length} crops from page ${currentPage}. Total: ${crops.length}`);
 
-      crops.push(...data.data);
-      console.log(`Retrieved ${data.data.length} crops from page ${page}. Total: ${crops.length}`);
-
-      // Save progress every 10 pages
-      if (page % 10 === 0) {
+      // Save progress more frequently (every 5 pages)
+      if (currentPage % 5 === 0) {
         fs.writeFileSync(tempFile, JSON.stringify(crops, null, 2));
-        console.log(`Progress saved at page ${page} (${crops.length} crops)`);
+        console.log(`Progress saved at page ${currentPage} (${crops.length} crops)`);
       }
 
       page++;
-      retryCount = 0; // Reset retry count on successful request
-
-      // Increased delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (error) {
-      console.error('Error fetching data:', error);
-      retryCount++;
-
-      if (retryCount >= maxRetries) {
-        // Save progress before exiting on error
-        fs.writeFileSync(tempFile, JSON.stringify(crops, null, 2));
-        console.log(`Progress saved after ${maxRetries} failed attempts. You can resume by running the script again.`);
-        console.log(`Last successful page: ${page - 1}`);
-        process.exit(1);
-      }
-
-      console.log(`Retry attempt ${retryCount}/${maxRetries}. Waiting before retry...`);
-      await new Promise(resolve => setTimeout(resolve, 5000 * retryCount)); // Increasing backoff
-      continue;
+      console.error(`Error fetching page ${currentPage}:`, error);
+      // Save progress on error
+      fs.writeFileSync(tempFile, JSON.stringify(crops, null, 2));
+      console.log(`Progress saved after error at page ${currentPage}. Run again with startPage=${currentPage} to resume.`);
+      process.exit(1);
     }
   }
 
+  // Write the final data
+  const outputFile = page >= targetPage ? finalFile : tempFile;
+  fs.writeFileSync(outputFile, JSON.stringify(crops, null, 2));
+  console.log(`Data written to ${outputFile}`);
   console.log(`Total crops fetched: ${crops.length}`);
 
-  // Write the final data and remove temp file
-  fs.writeFileSync(finalFile, JSON.stringify(crops, null, 2));
-  if (fs.existsSync(tempFile)) {
-    fs.unlinkSync(tempFile);
+  if (page < targetPage) {
+    console.log(`\nTo continue fetching, run the script again with:`);
+    console.log(`startPage=${page}, targetPage=${targetPage}`);
   }
-  console.log(`Data written to ${finalFile}`);
 }
 
-fetchOpenFarmData().catch(console.error);
+// Parse command line arguments for start and target pages
+const args = process.argv.slice(2);
+const startPage = parseInt(args[0]) || 1;
+const targetPage = parseInt(args[1]) || 300;
+
+fetchOpenFarmData(startPage, targetPage).catch(console.error);
