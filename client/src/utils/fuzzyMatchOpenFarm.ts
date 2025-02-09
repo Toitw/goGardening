@@ -1,6 +1,6 @@
 import Fuse from 'fuse.js';
-import crops from '../data/openfarmCrops.json';
 
+// Define a more specific type for the OpenFarm data
 interface OpenFarmCrop {
   type: string;
   id: string;
@@ -12,31 +12,66 @@ interface OpenFarmCrop {
   };
 }
 
+// Cache for the loaded crop data
+let cropDataCache: OpenFarmCrop[] | null = null;
+
+// Create a function to load the JSON data with type checking
+async function loadCropData(): Promise<OpenFarmCrop[]> {
+  if (cropDataCache) {
+    return cropDataCache;
+  }
+
+  try {
+    const module = await import('@/data/openfarmCrops.json');
+    cropDataCache = Array.isArray(module.default) ? module.default : [];
+    return cropDataCache;
+  } catch (error) {
+    console.warn('Failed to load OpenFarm crop data:', error);
+    return [];
+  }
+}
+
 const fuseOptions = {
   keys: ['attributes.name'],
   threshold: 0.3, // Lower threshold means more strict matching
   includeScore: true,
 };
 
-const fuse = new Fuse(crops as OpenFarmCrop[], fuseOptions);
+// Initialize Fuse with the loaded data
+let fuseInstance: Fuse<OpenFarmCrop> | null = null;
 
-export function getOpenFarmImageFor(plantName: string): string | null {
+async function getFuseInstance(): Promise<Fuse<OpenFarmCrop>> {
+  if (!fuseInstance) {
+    const crops = await loadCropData();
+    fuseInstance = new Fuse(crops, fuseOptions);
+  }
+  return fuseInstance;
+}
+
+export async function getOpenFarmImageFor(plantName: string): Promise<string | null> {
   if (!plantName) return null;
 
-  // Try exact match first
-  const exactMatch = crops.find(
-    (crop) => crop.attributes.name.toLowerCase() === plantName.toLowerCase()
-  );
-  if (exactMatch?.attributes.main_image_path) {
-    return exactMatch.attributes.main_image_path;
-  }
+  try {
+    // Try exact match first
+    const crops = await loadCropData();
+    const exactMatch = crops.find(
+      (crop) => crop.attributes.name.toLowerCase() === plantName.toLowerCase()
+    );
+    if (exactMatch?.attributes.main_image_path) {
+      return exactMatch.attributes.main_image_path;
+    }
 
-  // Try fuzzy match
-  const results = fuse.search(plantName);
-  if (results.length > 0 && results[0].score && results[0].score < 0.4) {
-    const bestMatch = results[0].item;
-    return bestMatch.attributes.main_image_path || null;
-  }
+    // Try fuzzy match
+    const fuse = await getFuseInstance();
+    const results = fuse.search(plantName);
+    if (results.length > 0 && results[0].score && results[0].score < 0.4) {
+      const bestMatch = results[0].item;
+      return bestMatch.attributes.main_image_path || null;
+    }
 
-  return null;
+    return null;
+  } catch (error) {
+    console.error('Error finding plant image:', error);
+    return null;
+  }
 }

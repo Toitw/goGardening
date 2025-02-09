@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sun, Droplets } from "lucide-react";
+import { getOpenFarmImageFor } from "@/utils/fuzzyMatchOpenFarm";
 
 interface PlantCardProps {
   name: string;
@@ -19,31 +20,31 @@ export function PlantCard({
   water,
   onClick,
 }: PlantCardProps) {
-  const [openfarmImage, setOpenfarmImage] = useState<string>("");
+  const [plantImage, setPlantImage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the plant image from OpenFarm API using the plant name.
-    fetch(`https://openfarm.cc/api/v1/crops?filter=${encodeURIComponent(name)}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data?.data && data.data.length > 0) {
-          const crop = data.data[0];
-          const imageUrl = crop.attributes?.main_image_path;
-          if (imageUrl) {
-            setOpenfarmImage(imageUrl);
-          }
+    async function fetchPlantImage() {
+      try {
+        const openFarmImage = await getOpenFarmImageFor(name);
+        if (openFarmImage) {
+          setPlantImage(openFarmImage);
         }
-      })
-      .catch((err) => {
-        console.error("Error fetching image from OpenFarm API", err);
-      });
+      } catch (error) {
+        console.warn(`Failed to fetch image for ${name}:`, error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchPlantImage();
   }, [name]);
 
   // Determine the final image to display:
-  // 1. Use the image fetched from OpenFarm if available.
-  // 2. Else use the image passed as a prop.
-  // 3. Else use a fallback placeholder.
-  const finalImage = openfarmImage || image || "/images/placeholder.png";
+  // 1. Use the image from our OpenFarm cache if available
+  // 2. Else use the image passed as a prop
+  // 3. Else use a fallback placeholder
+  const finalImage = plantImage || image || "/images/placeholder.png";
 
   return (
     <Card
@@ -51,11 +52,18 @@ export function PlantCard({
       onClick={onClick}
     >
       {finalImage && (
-        <img
-          src={finalImage}
-          alt={name}
-          className="h-32 w-full object-cover rounded-t-md"
-        />
+        <div className="relative h-32">
+          <img
+            src={finalImage}
+            alt={name}
+            className={`h-32 w-full object-cover rounded-t-md ${
+              isLoading ? "opacity-0" : "opacity-100"
+            } transition-opacity duration-200`}
+          />
+          {isLoading && (
+            <div className="absolute inset-0 bg-muted animate-pulse rounded-t-md" />
+          )}
+        </div>
       )}
       <CardHeader>
         <CardTitle className="text-lg">{name}</CardTitle>

@@ -63,6 +63,7 @@ async function fetchOpenFarmData(startPage = 1) {
       const data: OpenFarmResponse = await response.json();
 
       if (!data.data || data.data.length === 0) {
+        console.log('No more data available, completing fetch.');
         hasMoreData = false;
         break;
       }
@@ -96,14 +97,6 @@ async function fetchOpenFarmData(startPage = 1) {
       console.log(`Retry attempt ${retryCount}/${maxRetries}. Waiting before retry...`);
       await new Promise(resolve => setTimeout(resolve, 5000 * retryCount)); // Increasing backoff
       continue;
-    }
-
-    // Check if we've hit a reasonable chunk size to save progress
-    if (crops.length >= 5000) {
-      console.log('Reached 5000 crops, saving progress and exiting...');
-      fs.writeFileSync(tempFile, JSON.stringify(crops, null, 2));
-      console.log(`Progress saved at ${crops.length} crops. You can resume by running the script again.`);
-      process.exit(0);
     }
   }
 
