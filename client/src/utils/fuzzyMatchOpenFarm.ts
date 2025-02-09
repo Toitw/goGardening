@@ -43,10 +43,10 @@ async function loadCropData(): Promise<OpenFarmCrop[]> {
 
 const fuseOptions = {
   keys: [
-    { name: "attributes.name", weight: 0.7 },
-    { name: "attributes.slug", weight: 0.3 },
+    { name: "attributes.common_names", weight: 0.9 },
+    { name: "attributes.name", weight: 0.1 },
   ],
-  threshold: 0.6, // Increased threshold to allow more tolerance in matching
+  threshold: 0.6,
   includeScore: true,
 };
 
@@ -71,7 +71,7 @@ export async function getOpenFarmImageFor(
     // Try exact match first
     const crops = await loadCropData();
     const exactMatch = crops.find(
-      (crop) => crop.attributes.name.toLowerCase() === plantName.toLowerCase(),
+      (crop) => crop.attributes.common_names?.some(name => name.toLowerCase() === plantName.toLowerCase()),
     );
     if (exactMatch?.attributes.main_image_path) {
       console.log(`Found exact match for ${plantName}`);
