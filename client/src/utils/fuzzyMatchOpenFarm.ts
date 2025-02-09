@@ -13,17 +13,21 @@ interface OpenFarmCrop {
 }
 
 // Cache for the loaded crop data
-let cropDataCache: OpenFarmCrop[] | null = null;
+let cropDataCache: OpenFarmCrop[] = [];
 
 // Create a function to load the JSON data with type checking
 async function loadCropData(): Promise<OpenFarmCrop[]> {
-  if (cropDataCache) {
+  if (cropDataCache.length > 0) {
     return cropDataCache;
   }
 
   try {
-    const module = await import('@/data/openfarmCrops.json');
-    cropDataCache = Array.isArray(module.default) ? module.default : [];
+    const response = await fetch('/data/openfarmCrops.json');
+    if (!response.ok) {
+      throw new Error(`Failed to load crop data: ${response.statusText}`);
+    }
+    const data = await response.json();
+    cropDataCache = Array.isArray(data) ? data : [];
     return cropDataCache;
   } catch (error) {
     console.warn('Failed to load OpenFarm crop data:', error);
@@ -61,7 +65,7 @@ export async function getOpenFarmImageFor(plantName: string): Promise<string | n
       return exactMatch.attributes.main_image_path;
     }
 
-    // Try fuzzy match
+    // Try fuzzy match if exact match fails
     const fuse = await getFuseInstance();
     const results = fuse.search(plantName);
     if (results.length > 0 && results[0].score && results[0].score < 0.4) {

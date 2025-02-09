@@ -90,7 +90,7 @@ export default function Plants() {
 
       {/* Floating Add Plant Button */}
       <Button
-        variant="primary"
+        variant="default"
         size="lg"
         className="fixed bottom-8 right-8 rounded-full shadow-lg flex items-center gap-2"
         onClick={() => setShowAddPlant(true)}

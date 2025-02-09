@@ -89,8 +89,7 @@ export const storage = {
     const [garden] = await db
       .update(gardens)
       .set({ gridData })
-      .where(eq(gardens.id, id))
-      .where(eq(gardens.userId, userId))
+      .where(and(eq(gardens.id, id), eq(gardens.userId, userId)))
       .returning();
     return garden;
   },
