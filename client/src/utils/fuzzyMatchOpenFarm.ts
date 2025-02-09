@@ -22,15 +22,17 @@ async function loadCropData(): Promise<OpenFarmCrop[]> {
   }
 
   try {
+    console.log('Attempting to load OpenFarm crop data...');
     const response = await fetch('/data/openfarmCrops.json');
     if (!response.ok) {
-      throw new Error(`Failed to load crop data: ${response.statusText}`);
+      throw new Error(`Failed to load crop data: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
+    console.log(`Successfully loaded ${Array.isArray(data) ? data.length : 0} crops`);
     cropDataCache = Array.isArray(data) ? data : [];
     return cropDataCache;
   } catch (error) {
-    console.warn('Failed to load OpenFarm crop data:', error);
+    console.error('Failed to load OpenFarm crop data:', error);
     return [];
   }
 }
@@ -56,12 +58,14 @@ export async function getOpenFarmImageFor(plantName: string): Promise<string | n
   if (!plantName) return null;
 
   try {
+    console.log(`Looking up image for plant: ${plantName}`);
     // Try exact match first
     const crops = await loadCropData();
     const exactMatch = crops.find(
       (crop) => crop.attributes.name.toLowerCase() === plantName.toLowerCase()
     );
     if (exactMatch?.attributes.main_image_path) {
+      console.log(`Found exact match for ${plantName}`);
       return exactMatch.attributes.main_image_path;
     }
 
@@ -70,9 +74,11 @@ export async function getOpenFarmImageFor(plantName: string): Promise<string | n
     const results = fuse.search(plantName);
     if (results.length > 0 && results[0].score && results[0].score < 0.4) {
       const bestMatch = results[0].item;
+      console.log(`Found fuzzy match for ${plantName}: ${bestMatch.attributes.name}`);
       return bestMatch.attributes.main_image_path || null;
     }
 
+    console.log(`No match found for ${plantName}`);
     return null;
   } catch (error) {
     console.error('Error finding plant image:', error);
