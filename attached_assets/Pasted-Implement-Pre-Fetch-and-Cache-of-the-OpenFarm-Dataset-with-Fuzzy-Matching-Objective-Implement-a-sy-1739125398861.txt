@@ -1,0 +1,59 @@
+Implement Pre-Fetch and Cache of the OpenFarm Dataset with Fuzzy Matching
+
+Objective:
+Implement a system that pre-fetches and caches the entire OpenFarm crop dataset into a local JSON file and then uses fuzzy matching (via Fuse.js) to look up the correct image URL for a given plant name. This will replace the current real-time API calls in the plant card component.
+
+Tasks:
+
+Add Dependency:
+
+In your package.json, add the dependency for Fuse.js (if not already present):
+json
+Copiar
+"fuse.js": "^6.6.2"
+Run npm install to ensure the dependency is installed.
+Create a Fetch Script:
+
+Create a new file at scripts/fetchOpenFarmData.ts.
+This script should:
+Use the OpenFarm API endpoint: https://openfarm.cc/api/v1/crops.
+Fetch the entire dataset by iterating through pages using query parameters (e.g., ?per_page=100&page=1). Continue fetching pages until no more data is returned.
+Aggregate all the crop data into a single array.
+Write the resulting JSON data to a file at client/src/data/openfarmCrops.json.
+Provide console logging so you know the script’s progress.
+The script is meant to be run manually (or on a schedule) to update the cached dataset.
+Create a Fuzzy Matching Utility:
+
+Create a new file at client/src/utils/fuzzyMatchOpenFarm.ts.
+This module should:
+Import Fuse.js.
+Import the cached JSON data from client/src/data/openfarmCrops.json.
+Configure Fuse.js to search the dataset based on crop names. (For example, set Fuse options with the key "attributes.name" or other relevant keys from the OpenFarm dataset.)
+Export a function, for example:
+typescript
+Copiar
+export function getOpenFarmImageFor(plantName: string): string | null {
+  // Use Fuse.js to find the best matching crop by its name.
+  // If a match is found and it has a valid main_image_path (e.g., in match.item.attributes.main_image_path), return that URL.
+  // Otherwise, return null.
+}
+Make sure the fuzzy search tolerates small differences (like singular vs. plural) so that for example “Shallots” and “Shallot” match correctly.
+Modify the Plant Card Component:
+
+In client/src/components/plant-card.tsx, update the code as follows:
+Remove or comment out the current useEffect that fetches data directly from the OpenFarm API.
+Import the new fuzzy matching utility function from client/src/utils/fuzzyMatchOpenFarm.ts.
+In the component logic, call the fuzzy matching function (e.g., getOpenFarmImageFor(name)) to get the image URL.
+Define the final image URL as: use the fuzzy matching result if available, else fall back to the image prop passed to the component, and if that is not available, use a placeholder (e.g., /images/placeholder.png).
+Ensure that the component continues to render the image, plant name, and other details as before.
+Testing and Execution:
+
+Run the fetch script (npx tsx scripts/fetchOpenFarmData.ts) to generate/update the client/src/data/openfarmCrops.json file.
+Test the plant card component (for example, by opening the /plants page) to confirm that the correct image URL is now retrieved from the cached dataset via fuzzy matching.
+If no good match is found, the fallback should display the default image or placeholder.
+Additional Notes:
+
+Use TypeScript throughout and ensure type safety.
+Add appropriate error handling and logging in the fetch script.
+Confirm that the Fuse.js configuration provides the desired matching quality.
+This solution should reduce latency by using a locally cached dataset rather than making a live API call on every render.
