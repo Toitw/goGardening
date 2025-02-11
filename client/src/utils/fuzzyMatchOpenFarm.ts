@@ -1,4 +1,3 @@
-
 import Fuse from "fuse.js";
 import pluralize from "pluralize";
 
@@ -110,7 +109,7 @@ export async function getOpenFarmImageFor(
 
     const crops = await loadCropData();
 
-    // First, try an exact match on normalized common_names, name, or slug
+    // First, try an exact match on normalized common_names, name, or slug.
     const matchingCrops = crops.filter((crop) => {
       const normName = normalizeName(crop.attributes.name);
       const normSlug = normalizeName(crop.attributes.slug);
@@ -145,11 +144,11 @@ export async function getOpenFarmImageFor(
         console.log(
           `Only fallback image found for ${plantName}: ${fallbackCandidate.attributes.name}`,
         );
-        approvedImageCache.set(
-          normalizedInput,
-          prefixImageUrl(fallbackCandidate.attributes.main_image_path),
+        const finalImage = prefixImageUrl(
+          fallbackCandidate.attributes.main_image_path,
         );
-        return prefixImageUrl(fallbackCandidate.attributes.main_image_path);
+        approvedImageCache.set(normalizedInput, finalImage);
+        return finalImage;
       }
     }
 
@@ -163,39 +162,45 @@ export async function getOpenFarmImageFor(
           `${idx}: ${result.item.attributes.name} - score: ${result.score}`,
         );
       });
+      // Use a stricter score threshold
       if (results[0].score !== undefined && results[0].score < 0.6) {
-        const bestMatch = results[0].item;
-        if (bestMatch.attributes.main_image_path) {
-          // If the best match has a fallback image, try to find another similar one among fuzzy results.
-          if (isFallbackImage(bestMatch.attributes.main_image_path)) {
-            console.log(
-              `Best fuzzy match for ${plantName} is a fallback image, searching for alternative...`,
+        let bestMatch = results[0].item;
+        // Check that the normalized name of the candidate contains the normalized search term.
+        const candidateName = normalizeName(bestMatch.attributes.name);
+        if (
+          !candidateName.includes(normalizedInput) &&
+          !normalizedInput.includes(candidateName)
+        ) {
+          console.log(
+            `Fuzzy match candidate "${bestMatch.attributes.name}" rejected due to insufficient substring overlap.`,
+          );
+          const alternative = results.find((result) => {
+            const altName = normalizeName(result.item.attributes.name);
+            return (
+              altName.includes(normalizedInput) ||
+              normalizedInput.includes(altName)
             );
-            const alternative = results.find(
-              (result) =>
-                result.item.attributes.main_image_path &&
-                !isFallbackImage(result.item.attributes.main_image_path),
-            );
-            if (alternative && alternative.item.attributes.main_image_path) {
-              const finalAlt = prefixImageUrl(
-                alternative.item.attributes.main_image_path,
-              );
-              console.log(
-                `Found approved fuzzy match for ${plantName}: ${alternative.item.attributes.name} (score: ${alternative.score})`,
-              );
-              approvedImageCache.set(normalizedInput, finalAlt);
-              return finalAlt;
-            }
+          });
+          if (
+            alternative &&
+            alternative.item.attributes.main_image_path &&
+            !isFallbackImage(alternative.item.attributes.main_image_path)
+          ) {
+            bestMatch = alternative.item;
           } else {
-            const finalImage = prefixImageUrl(
-              bestMatch.attributes.main_image_path,
-            );
-            console.log(
-              `Found fuzzy match for ${plantName}: ${bestMatch.attributes.name} (score: ${results[0].score})`,
-            );
-            approvedImageCache.set(normalizedInput, finalImage);
-            return finalImage;
+            console.log("No acceptable fuzzy match found.");
+            return null;
           }
+        }
+        if (bestMatch.attributes.main_image_path) {
+          const finalImage = prefixImageUrl(
+            bestMatch.attributes.main_image_path,
+          );
+          console.log(
+            `Found fuzzy match for ${plantName}: ${bestMatch.attributes.name} (score: ${results[0].score})`,
+          );
+          approvedImageCache.set(normalizedInput, finalImage);
+          return finalImage;
         }
       }
     }
