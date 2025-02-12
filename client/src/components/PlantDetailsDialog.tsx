@@ -39,12 +39,9 @@ export function PlantDetailsDialog({
         <DialogHeader>
           <div className="flex flex-col w-full">
             <img
-              src={plant.attributes?.image || plant.image}
+              src={plant.attributes?.main_image_path || "/images/placeholder.png"}
               alt={plant.common_name}
               className="w-full h-48 object-cover rounded-lg mb-4"
-              onError={(e) => {
-                e.currentTarget.src = "/images/placeholder.png";
-              }}
             />
             <div className="flex items-center justify-between">
               <DialogTitle className="text-2xl font-bold">
