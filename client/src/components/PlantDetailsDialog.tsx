@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -35,30 +34,33 @@ export function PlantDetailsDialog({
 
   return (
     <Dialog open={!!plant} onOpenChange={onClose}>
+      {/* Make the dialog scrollable */}
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex flex-col w-full">
+          <div className="flex items-center justify-between">
+            {plant.image && (
+          <div className="mb-4">
             <img
-              src={plant.attributes?.main_image_path || "/images/placeholder.png"}
+              src={plant.image}
               alt={plant.common_name}
-              className="w-full h-48 object-cover rounded-lg mb-4"
+              className="w-full h-48 object-cover rounded-lg"
             />
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-2xl font-bold">
-                {plant.common_name}
-              </DialogTitle>
-              <button onClick={() => setFavorite(!favorite)}>
-                {favorite ? (
-                  <Heart className="text-red-500 w-6 h-6" />
-                ) : (
-                  <HeartOff className="w-6 h-6" />
-                )}
-              </button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {plant.scientific_name}
-            </p>
           </div>
+        )}
+            <DialogTitle className="text-2xl font-bold">
+              {plant.common_name}
+            </DialogTitle>
+            <button onClick={() => setFavorite(!favorite)}>
+              {favorite ? (
+                <Heart className="text-red-500 w-6 h-6" />
+              ) : (
+                <HeartOff className="w-6 h-6" />
+              )}
+            </button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {plant.scientific_name}
+          </p>
         </DialogHeader>
 
         {plant.additional_images && plant.additional_images.length > 0 && (
