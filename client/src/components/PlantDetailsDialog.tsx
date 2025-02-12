@@ -38,16 +38,16 @@ export function PlantDetailsDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            {plant.image && (
-          <div className="mb-4">
-            <img
-              src={plant.image}
-              alt={plant.common_name}
-              className="w-full h-48 object-cover rounded-lg"
-            />
-          </div>
-        )}
-            <DialogTitle className="text-2xl font-bold">
+            <div className="w-full">
+              <img
+                src={plant.attributes?.image || plant.image}
+                alt={plant.common_name}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+                onError={(e) => {
+                  e.currentTarget.src = "/images/placeholder.png";
+                }}
+              />
+              <DialogTitle className="text-2xl font-bold">
               {plant.common_name}
             </DialogTitle>
             <button onClick={() => setFavorite(!favorite)}>
