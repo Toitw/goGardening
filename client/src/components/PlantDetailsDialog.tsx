@@ -48,9 +48,9 @@ export function PlantDetailsDialog({
                 }}
               />
               <DialogTitle className="text-2xl font-bold">
-              {plant.common_name}
-            </DialogTitle>
-            <button onClick={() => setFavorite(!favorite)}>
+                {plant.common_name}
+              </DialogTitle>
+              <button onClick={() => setFavorite(!favorite)}>
               {favorite ? (
                 <Heart className="text-red-500 w-6 h-6" />
               ) : (
