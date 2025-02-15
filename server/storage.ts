@@ -105,7 +105,7 @@ export const storage = {
     return await db.select().from(gardens).where(eq(gardens.userId, userId));
   },
 
-  async getGardenById: getGardenById,
+  getGardenById,
 
   async updateGarden(id: number, userId: number, gridData: any[]) {
     const garden = await getGardenById(id, userId);
