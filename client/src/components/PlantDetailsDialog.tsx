@@ -40,14 +40,14 @@ export function PlantDetailsDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto" hideClose>
         <DialogHeader>
           <div className="relative">
-            <button 
+            <button
               onClick={onClose}
               className="absolute top-0 left-0 p-2 hover:text-primary"
               aria-label="Back"
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <button 
+            <button
               onClick={() => setFavorite(!favorite)}
               className="absolute top-0 right-0 p-2"
             >
