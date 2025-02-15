@@ -120,7 +120,7 @@ export const storage = {
     return updatedGarden;
   },
 
-  async updateGardenGridData: updateGardenGridData,
+  updateGardenGridData,
 
   async deleteGarden(id: number, userId: number) {
     const [deletedGarden] = await db
