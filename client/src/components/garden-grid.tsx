@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Leaf } from "lucide-react";
 
@@ -9,17 +8,23 @@ interface GardenGridProps {
   onCellClick: (x: number, y: number) => void;
 }
 
-export function GardenGrid({ gridData, width, length, onCellClick }: GardenGridProps) {
-  // Calculate columns based on 30cm cell size
-  const columns = Math.ceil(width / 30);
-  const rows = Math.ceil(length / 30);
+export function GardenGrid({
+  gridData,
+  width,
+  length,
+  onCellClick,
+}: GardenGridProps) {
+  // Use a smaller cell size (e.g. 25cm per cell) so the grid stays compact
+  const cellSize = 25;
+  const columns = Math.ceil(width / cellSize);
+  const rows = Math.ceil(length / cellSize);
 
   return (
-    <div 
-      className="grid gap-1 p-4 w-full overflow-x-auto" 
+    <div
+      className="grid gap-1 p-4 w-full overflow-auto max-h-[70vh]"
       style={{
-        gridTemplateColumns: `repeat(${columns}, minmax(30px, 1fr))`,
-        gridTemplateRows: `repeat(${rows}, minmax(30px, 1fr))`,
+        gridTemplateColumns: `repeat(${columns}, minmax(25px, 1fr))`,
+        gridTemplateRows: `repeat(${rows}, minmax(25px, 1fr))`,
       }}
     >
       {Array.from({ length: rows * columns }).map((_, index) => {
