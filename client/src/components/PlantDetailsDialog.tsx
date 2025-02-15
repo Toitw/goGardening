@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -34,14 +35,12 @@ export function PlantDetailsDialog({
 
   return (
     <Dialog open={!!plant} onOpenChange={onClose}>
-      {/* Make the dialog scrollable */}
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="relative">
             <div className="flex flex-col md:flex-row items-center justify-between">
               {(plant.image) && (
                 <div className="mb-4 w-full md:w-1/2">
-                  {/* Fixed-height container for the header image */}
                   <div className="h-48 w-full overflow-hidden rounded-lg">
                     <img
                       src={plant.image}
@@ -60,7 +59,6 @@ export function PlantDetailsDialog({
                 </p>
               </div>
             </div>
-            {/* Favorite button always at top-right */}
             <button
               onClick={() => setFavorite(!favorite)}
               className="absolute top-2 right-2"
@@ -90,5 +88,7 @@ export function PlantDetailsDialog({
         <div className="my-4">
           <p>{plant.description}</p>
         </div>
-
-
+      </DialogContent>
+    </Dialog>
+  );
+}
