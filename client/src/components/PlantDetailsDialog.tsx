@@ -71,6 +71,7 @@ export function PlantDetailsDialog({
                   {plant.scientific_name}
                 </p>
               </div>
+            </div>
           </div>
         </DialogHeader>
 
