@@ -8,9 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
+interface SelectedPlant {
+  id: string;
+  details: any;
+  image: string;
+}
+
 export default function Plants() {
   const [search, setSearch] = useState("");
-  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
+  const [selectedPlant, setSelectedPlant] = useState<SelectedPlant | null>(
+    null,
+  );
   const [showAddPlant, setShowAddPlant] = useState(false);
 
   // For now we ignore search filtering and show all plants.
@@ -31,7 +39,7 @@ export default function Plants() {
         </p>
       </div>
 
-      {/* Recommended Plants section (to be updated with AI recommendations later) */}
+      {/* Recommended Plants section */}
       <div className="p-4">
         <h2 className="text-xl font-bold mb-4">Recommended Plants</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -45,7 +53,13 @@ export default function Plants() {
                 sunlight={details?.attributes?.sun_requirements || "Full Sun"}
                 water={details?.attributes?.water_requirements || "Moderate"}
                 description=""
-                onClick={() => setSelectedPlantId(plant.id)}
+                onClick={(finalImage: string) =>
+                  setSelectedPlant({
+                    id: plant.id,
+                    details: plantDetailsMap[plant.id],
+                    image: finalImage,
+                  })
+                }
               />
             );
           })}
@@ -67,7 +81,13 @@ export default function Plants() {
                   sunlight={details?.attributes?.sun_requirements || "Full Sun"}
                   water={details?.attributes?.water_requirements || "Moderate"}
                   description=""
-                  onClick={() => setSelectedPlantId(plant.id)}
+                  onClick={(finalImage: string) =>
+                    setSelectedPlant({
+                      id: plant.id,
+                      details: plantDetailsMap[plant.id],
+                      image: finalImage,
+                    })
+                  }
                 />
               );
             })}
@@ -76,10 +96,11 @@ export default function Plants() {
       ))}
 
       {/* Plant Details Dialog */}
-      {selectedPlantId && plantDetailsMap[selectedPlantId] && (
+      {selectedPlant && selectedPlant.details && (
         <PlantDetailsDialog
-          plant={plantDetailsMap[selectedPlantId]}
-          onClose={() => setSelectedPlantId(null)}
+          plant={selectedPlant.details}
+          image={selectedPlant.image}
+          onClose={() => setSelectedPlant(null)}
         />
       )}
 

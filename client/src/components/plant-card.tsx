@@ -10,7 +10,8 @@ interface PlantCardProps {
   sunlight: string;
   water: string;
   description: string;
-  onClick?: () => void;
+  // Pass the computed final image to onClick
+  onClick?: (finalImage: string) => void;
 }
 
 export function PlantCard({
@@ -38,7 +39,9 @@ export function PlantCard({
       } catch (error) {
         console.warn(`Failed to fetch image for ${name}:`, error);
         if (mounted) {
-          setError(error instanceof Error ? error.message : 'Failed to load image');
+          setError(
+            error instanceof Error ? error.message : "Failed to load image",
+          );
         }
       } finally {
         if (mounted) {
@@ -63,7 +66,11 @@ export function PlantCard({
   return (
     <Card
       className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={onClick}
+      onClick={() => {
+        if (onClick) {
+          onClick(finalImage);
+        }
+      }}
     >
       <div className="relative h-32">
         <img

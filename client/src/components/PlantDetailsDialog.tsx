@@ -37,20 +37,34 @@ export function PlantDetailsDialog({
       {/* Make the dialog scrollable */}
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            {plant.image && (
-          <div className="mb-4">
-            <img
-              src={plant.image}
-              alt={plant.common_name}
-              className="w-full h-48 object-cover rounded-lg"
-            />
-          </div>
-        )}
-            <DialogTitle className="text-2xl font-bold">
-              {plant.common_name}
-            </DialogTitle>
-            <button onClick={() => setFavorite(!favorite)}>
+          <div className="relative">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              {(plant.image) && (
+                <div className="mb-4 w-full md:w-1/2">
+                  {/* Fixed-height container for the header image */}
+                  <div className="h-48 w-full overflow-hidden rounded-lg">
+                    <img
+                      src={plant.image}
+                      alt={plant.common_name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+              <div className="w-full md:w-1/2 text-center md:text-left">
+                <DialogTitle className="text-2xl font-bold truncate">
+                  {plant.common_name}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground truncate">
+                  {plant.scientific_name}
+                </p>
+              </div>
+            </div>
+            {/* Favorite button always at top-right */}
+            <button
+              onClick={() => setFavorite(!favorite)}
+              className="absolute top-2 right-2"
+            >
               {favorite ? (
                 <Heart className="text-red-500 w-6 h-6" />
               ) : (
@@ -58,9 +72,6 @@ export function PlantDetailsDialog({
               )}
             </button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {plant.scientific_name}
-          </p>
         </DialogHeader>
 
         {plant.additional_images && plant.additional_images.length > 0 && (
@@ -70,7 +81,7 @@ export function PlantDetailsDialog({
                 key={idx}
                 src={img}
                 alt={`${plant.common_name} ${idx + 1}`}
-                className="object-cover rounded-md"
+                className="object-cover rounded-md h-32 w-full"
               />
             ))}
           </div>
@@ -80,20 +91,4 @@ export function PlantDetailsDialog({
           <p>{plant.description}</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 my-4">
-          {quickInfoItems.map((item, idx) => (
-            <div
-              key={idx}
-              className="flex flex-col items-center text-center cursor-pointer"
-              onClick={() => console.log(`More info about ${item.label}`)}
-            >
-              <div className="text-2xl">{item.icon}</div>
-              <div className="font-semibold">{item.value}</div>
-              <div className="text-xs text-muted-foreground">{item.label}</div>
-            </div>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+
