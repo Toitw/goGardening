@@ -39,34 +39,38 @@ export function PlantDetailsDialog({
       {/* Make the dialog scrollable */}
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            {(image || plant.image) && (
-              <div className="mb-4 w-full md:w-1/2">
-                {/* Fixed-height container for the header image */}
-                <div className="h-48 w-full overflow-hidden rounded-lg">
-                  <img
-                    src={image || plant.image}
-                    alt={plant.common_name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            )}
-            <div className="w-full md:w-1/2 text-center md:text-left">
-              <DialogTitle className="text-2xl font-bold truncate">
-                {plant.common_name}
-              </DialogTitle>
-              <p className="text-sm text-muted-foreground truncate">
-                {plant.scientific_name}
-              </p>
-            </div>
-            <button onClick={() => setFavorite(!favorite)}>
+          <div className="relative">
+            <button 
+              onClick={() => setFavorite(!favorite)}
+              className="absolute top-0 right-0 p-2"
+            >
               {favorite ? (
                 <Heart className="text-red-500 w-6 h-6" />
               ) : (
                 <HeartOff className="w-6 h-6" />
               )}
             </button>
+            <div className="flex flex-col md:flex-row items-center justify-between pt-8">
+              {(image || plant.image) && (
+                <div className="mb-4 w-full md:w-1/2">
+                  {/* Fixed-height container for the header image */}
+                  <div className="h-48 w-full overflow-hidden rounded-lg">
+                    <img
+                      src={image || plant.image}
+                      alt={plant.common_name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+              <div className="w-full md:w-1/2 text-center md:text-left">
+                <DialogTitle className="text-2xl font-bold truncate">
+                  {plant.common_name}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground truncate">
+                  {plant.scientific_name}
+                </p>
+              </div>
           </div>
         </DialogHeader>
 
