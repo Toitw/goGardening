@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Heart, HeartOff } from "lucide-react";
+import { Heart, HeartOff, ArrowLeft } from "lucide-react";
 
 interface PlantDetailsDialogProps {
   plant: any; // Use your PlantDetails type if desired.
@@ -37,9 +37,16 @@ export function PlantDetailsDialog({
   return (
     <Dialog open={!!plant} onOpenChange={onClose}>
       {/* Make the dialog scrollable */}
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto" hideClose>
         <DialogHeader>
           <div className="relative">
+            <button 
+              onClick={onClose}
+              className="absolute top-0 left-0 p-2 hover:text-primary"
+              aria-label="Back"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
             <button 
               onClick={() => setFavorite(!favorite)}
               className="absolute top-0 right-0 p-2"
