@@ -36,8 +36,17 @@ export function PlantDetailsDialog({
 
   return (
     <Dialog open={!!plant} onOpenChange={onClose}>
-      {/* Make the dialog scrollable */}
-      <DialogContent className="max-h-[90vh] overflow-y-auto" hideClose>
+      {/* Add a custom className to help override the default close button */}
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto hide-default-close"
+        hideClose
+      >
+        {/* Global style override to hide any default close button */}
+        <style jsx global>{`
+          .hide-default-close button[aria-label="Close"] {
+            display: none !important;
+          }
+        `}</style>
         <DialogHeader>
           <div className="relative">
             <button
