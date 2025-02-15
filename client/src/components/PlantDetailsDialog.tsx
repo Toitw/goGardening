@@ -37,7 +37,7 @@ export function PlantDetailsDialog({
   return (
     <Dialog open={!!plant} onOpenChange={onClose}>
       {/* Make the dialog scrollable */}
-      <DialogContent className="max-h-[90vh] overflow-y-auto" hideCloseButton>
+      <DialogContent className="max-h-[90vh] overflow-y-auto" hideClose>
         <DialogHeader>
           <div className="relative">
             <button
