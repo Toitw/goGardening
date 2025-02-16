@@ -27,8 +27,8 @@ export function GardenGrid({
       }}
     >
       {Array.from({ length: rows * columns }).map((_, index) => {
-        const x = Math.floor(index / columns);
-        const y = index % columns;
+        const y = Math.floor(index / columns);
+        const x = index % columns;
         const cell = gridData[index];
         return (
           <Card
