@@ -14,8 +14,7 @@ export function GardenGrid({
   length,
   onCellClick,
 }: GardenGridProps) {
-  // Use a smaller cell size so the grid stays compact
-  const cellSize = 25;
+  const cellSize = 25; // Smaller cell size
   const columns = Math.ceil(width / cellSize);
   const rows = Math.ceil(length / cellSize);
 

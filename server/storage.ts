@@ -1,31 +1,41 @@
+// server/storage.ts
 import { db } from "./db";
 import { users, gardens } from "@shared/schema";
-import { eq } from "drizzle-orm";
-import { InsertGarden } from "@shared/schema";
-import { log } from "./vite";
+import { eq, and } from "drizzle-orm";
+import bcryptjs from "bcryptjs";
 
 async function getGardenById(id: number, userId: number) {
-  const garden = await db.select().from(gardens)
+  const garden = await db
+    .select()
+    .from(gardens)
     .where(eq(gardens.id, id))
-    .then(rows => rows[0]);
-
+    .then((rows) => rows[0]);
   if (garden && garden.userId !== userId) {
     return null;
   }
-
+  // Parse gridData if stored as JSON text.
   if (garden && typeof garden.gridData === "string") {
-    garden.gridData = JSON.parse(garden.gridData);
+    try {
+      garden.gridData = JSON.parse(garden.gridData);
+    } catch (error) {
+      console.error("Error parsing garden gridData:", error);
+      garden.gridData = [];
+    }
   }
   return garden;
 }
 
-async function updateGardenGridData(gardenId: number, userId: number, gridData: any[]) {
+async function updateGardenGridData(
+  gardenId: number,
+  userId: number,
+  gridData: any[],
+) {
   const garden = await getGardenById(gardenId, userId);
   if (!garden) {
     return null;
   }
-
-  return await db.update(gardens)
+  return await db
+    .update(gardens)
     .set({ gridData: JSON.stringify(gridData) })
     .where(eq(gardens.id, gardenId))
     .returning();
@@ -50,10 +60,7 @@ export const storage = {
     const hashedPassword = await bcryptjs.hash(password, 10);
     const [user] = await db
       .insert(users)
-      .values({
-        username,
-        password: hashedPassword,
-      })
+      .values({ username, password: hashedPassword })
       .returning();
     return user;
   },
@@ -109,7 +116,7 @@ export const storage = {
 
   async updateGarden(id: number, userId: number, gridData: any[]) {
     const garden = await getGardenById(id, userId);
-    if(!garden) {
+    if (!garden) {
       return null;
     }
     const [updatedGarden] = await db
@@ -117,6 +124,15 @@ export const storage = {
       .set({ gridData: JSON.stringify(gridData) })
       .where(eq(gardens.id, id))
       .returning();
+    // Parse gridData before returning.
+    if (updatedGarden && typeof updatedGarden.gridData === "string") {
+      try {
+        updatedGarden.gridData = JSON.parse(updatedGarden.gridData);
+      } catch (error) {
+        console.error("Error parsing updated garden gridData:", error);
+        updatedGarden.gridData = [];
+      }
+    }
     return updatedGarden;
   },
 
@@ -130,5 +146,3 @@ export const storage = {
     return deletedGarden;
   },
 };
-import bcryptjs from "bcryptjs";
-import { and } from "drizzle-orm";

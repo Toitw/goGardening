@@ -52,7 +52,7 @@ export function PlantSelectionDialog({
                 key={plant.id}
                 onClick={() => {
                   onSelectPlant(plant);
-                  onClose();
+                  // Do not close here; let the confirmation dialog handle that.
                 }}
                 className="cursor-pointer"
               >
