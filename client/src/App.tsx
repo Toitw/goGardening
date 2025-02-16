@@ -26,6 +26,7 @@ function Router() {
           const location = useLocation()[0];
           const { user } = useAuth();
 
+          // Redirect to garden if user has already completed onboarding
           if (user?.gardenSpace && location === "/onboarding") {
             return <Redirect to="/garden" />;
           }
@@ -33,7 +34,30 @@ function Router() {
           return <Onboarding />;
         }}
       />
-      <ProtectedRoute path="/garden/new" component={React.lazy(() => import("./pages/garden/new"))} />
+      <ProtectedRoute
+        path="/garden/new"
+        component={() => {
+          const { user } = useAuth();
+          const [Component, setComponent] =
+            React.useState<React.ComponentType | null>(null);
+
+          React.useEffect(() => {
+            import("./pages/garden/new").then((module) => {
+              setComponent(() => module.default);
+            });
+          }, []);
+
+          if (!user?.gardenSpace) {
+            return <Redirect to="/onboarding" />;
+          }
+
+          if (!Component) {
+            return <div>Loading...</div>;
+          }
+
+          return <Component />;
+        }}
+      />
       <ProtectedRoute
         path="/garden"
         component={() => {
@@ -48,7 +72,27 @@ function Router() {
       />
       <ProtectedRoute
         path="/garden/:id"
-        component={React.lazy(() => import("./pages/garden/[id]"))}
+        component={() => {
+          const { user } = useAuth();
+          const [Component, setComponent] =
+            React.useState<React.ComponentType | null>(null);
+
+          React.useEffect(() => {
+            import("./pages/garden/[id]").then((module) => {
+              setComponent(() => module.default);
+            });
+          }, []);
+
+          if (!user?.gardenSpace) {
+            return <Redirect to="/onboarding" />;
+          }
+
+          if (!Component) {
+            return <div>Loading...</div>;
+          }
+
+          return <Component />;
+        }}
       />
       <ProtectedRoute path="/plants" component={Plants} />
       <ProtectedRoute path="/settings" component={Settings} />
@@ -67,11 +111,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <Router />
-          <NavbarWrapper />
-          <Toaster />
-        </React.Suspense>
+        <Router />
+        <NavbarWrapper />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
