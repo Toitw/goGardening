@@ -117,7 +117,7 @@ export function registerRoutes(app: Express): Server {
       let gridData: any[] = garden.gridData || [];
       const cellSize = 25;
       const columns = Math.ceil(garden.width / cellSize);
-      const index = x * columns + y;
+      const index = y * columns + x;
       gridData[index] = plantData;
       await storage.updateGarden(gardenId, userId, gridData);
       console.log(`Updated cell at (${x}, ${y}) with plantData:`, plantData);
