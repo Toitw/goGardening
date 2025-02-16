@@ -26,9 +26,14 @@ export default function GardenPage({ params }: { params: { id: string } }) {
       if (!response.ok) {
         throw new Error("Failed to fetch garden");
       }
-      return response.json();
+      const data = await response.json();
+      // Ensure gridData is properly initialized
+      if (!Array.isArray(data.gridData)) {
+        data.gridData = [];
+      }
+      return data;
     },
-    enabled: !!user?.id && !!gardenId,
+    enabled: !!user?.id && !isNaN(gardenId),
   });
 
   const handleCellClick = (x: number, y: number) => {
@@ -41,51 +46,55 @@ export default function GardenPage({ params }: { params: { id: string } }) {
     image: string;
     category: string;
   }) => {
-    if (selectedCell) {
-      try {
-        // Calculate the index in the gridData array
-        const index = selectedCell.x * Math.ceil(garden.width / 25) + selectedCell.y;
+    if (!selectedCell || !garden) return;
 
-        // Create a new gridData array with the updated cell
-        const newGridData = [...garden.gridData];
-        newGridData[index] = {
-          plantId: plant.id,
-          image: plant.image,
-          name: plant.name,
-        };
+    try {
+      const columns = Math.ceil(garden.width / 25);
+      const index = selectedCell.x * columns + selectedCell.y;
 
-        // Update the garden with the new grid data
-        const response = await fetch(`/api/gardens/${gardenId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            gridData: newGridData,
-          }),
-        });
+      // Create a new gridData array with proper length if needed
+      const newGridData = Array.isArray(garden.gridData) 
+        ? [...garden.gridData]
+        : new Array(Math.ceil(garden.width / 25) * Math.ceil(garden.length / 25)).fill(null);
 
-        if (!response.ok) {
-          throw new Error("Failed to update garden");
-        }
+      // Update the selected cell
+      newGridData[index] = {
+        plantId: plant.id,
+        image: plant.image,
+        name: plant.name,
+      };
 
-        // Invalidate query to refresh the grid
-        await queryClient.invalidateQueries({ queryKey: ["/api/gardens", gardenId] });
-        setSelectedCell(null);
+      // Update the garden with the new grid data
+      const response = await fetch(`/api/gardens/${gardenId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          gridData: newGridData,
+        }),
+      });
 
-        toast({
-          title: "Plant added",
-          description: `${plant.name} has been added to your garden`,
-        });
-      } catch (error) {
-        console.error("Error updating garden:", error);
-        toast({
-          title: "Error",
-          description: "Failed to add plant to garden",
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        throw new Error("Failed to update garden");
       }
+
+      // Invalidate query to refresh the grid
+      await queryClient.invalidateQueries({ queryKey: ["/api/gardens", gardenId] });
+      setSelectedCell(null);
+
+      toast({
+        title: "Plant added",
+        description: `${plant.name} has been added to your garden`,
+      });
+    } catch (error) {
+      console.error("Error updating garden:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add plant to garden",
+        variant: "destructive",
+      });
     }
   };
 
@@ -101,7 +110,7 @@ export default function GardenPage({ params }: { params: { id: string } }) {
     <div className="container py-8">
       <h1 className="text-2xl font-bold mb-8">{garden.name}</h1>
       <GardenGrid
-        gridData={garden.gridData}
+        gridData={garden.gridData || []}
         width={garden.width}
         length={garden.length}
         onCellClick={handleCellClick}
