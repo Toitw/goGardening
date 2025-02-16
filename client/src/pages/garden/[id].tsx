@@ -4,18 +4,30 @@ import { GardenGrid } from "@/components/garden-grid";
 import { PlantSelectionDialog } from "@/components/PlantSelectionDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { Redirect } from "wouter";
 
 interface SelectedCell {
   x: number;
   y: number;
 }
 
-export default function GardenPage({ params }: { params: { id: string } }) {
+interface GardenPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function GardenPage({ params }: GardenPageProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const gardenId = parseInt(params.id);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
+
+  // Redirect if garden ID is invalid
+  if (isNaN(gardenId)) {
+    return <Redirect to="/garden" />;
+  }
 
   const { data: garden, isLoading } = useQuery({
     queryKey: ["/api/gardens", gardenId],
@@ -24,6 +36,9 @@ export default function GardenPage({ params }: { params: { id: string } }) {
         credentials: "include",
       });
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Garden not found");
+        }
         throw new Error("Failed to fetch garden");
       }
       const data = await response.json();
@@ -53,7 +68,7 @@ export default function GardenPage({ params }: { params: { id: string } }) {
       const index = selectedCell.x * columns + selectedCell.y;
 
       // Create a new gridData array with proper length if needed
-      const newGridData = Array.isArray(garden.gridData) 
+      const newGridData = Array.isArray(garden.gridData)
         ? [...garden.gridData]
         : new Array(Math.ceil(garden.width / 25) * Math.ceil(garden.length / 25)).fill(null);
 
