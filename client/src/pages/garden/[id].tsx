@@ -23,6 +23,7 @@ export default function GardenPage({ params }: GardenPageProps) {
   const queryClient = useQueryClient();
   const gardenId = parseInt(params.id);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
+  const [localGridData, setLocalGridData] = useState<any[]>([]);
 
   // Redirect if garden ID is invalid
   if (isNaN(gardenId)) {
@@ -42,10 +43,11 @@ export default function GardenPage({ params }: GardenPageProps) {
         throw new Error("Failed to fetch garden");
       }
       const data = await response.json();
-      // Ensure gridData is properly initialized
+      // Ensure gridData is properly initialized and update local state
       if (!Array.isArray(data.gridData)) {
         data.gridData = [];
       }
+      setLocalGridData(data.gridData);
       return data;
     },
     enabled: !!user?.id && !isNaN(gardenId),
@@ -68,8 +70,8 @@ export default function GardenPage({ params }: GardenPageProps) {
       const index = selectedCell.x * columns + selectedCell.y;
 
       // Create a new gridData array with proper length if needed
-      const newGridData = Array.isArray(garden.gridData)
-        ? [...garden.gridData]
+      const newGridData = Array.isArray(localGridData)
+        ? [...localGridData]
         : new Array(Math.ceil(garden.width / 25) * Math.ceil(garden.length / 25)).fill(null);
 
       // Update the selected cell
@@ -78,6 +80,9 @@ export default function GardenPage({ params }: GardenPageProps) {
         image: plant.image,
         name: plant.name,
       };
+
+      // Update local state immediately
+      setLocalGridData(newGridData);
 
       // Update the garden with the new grid data
       const response = await fetch(`/api/gardens/${gardenId}`, {
@@ -95,8 +100,7 @@ export default function GardenPage({ params }: GardenPageProps) {
         throw new Error("Failed to update garden");
       }
 
-      // Invalidate query to refresh the grid
-      await queryClient.invalidateQueries({ queryKey: ["/api/gardens", gardenId] });
+      // Close the dialog
       setSelectedCell(null);
 
       toast({
@@ -125,7 +129,7 @@ export default function GardenPage({ params }: GardenPageProps) {
     <div className="container py-8">
       <h1 className="text-2xl font-bold mb-8">{garden.name}</h1>
       <GardenGrid
-        gridData={garden.gridData || []}
+        gridData={localGridData}
         width={garden.width}
         length={garden.length}
         onCellClick={handleCellClick}
