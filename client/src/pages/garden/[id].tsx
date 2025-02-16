@@ -116,7 +116,7 @@ export default function GardenDetail() {
           const updatedGrid = [...oldData.gridData];
           const cellSize = 25;
           const columns = Math.ceil(oldData.width / cellSize);
-          const index = selectedCell.y * columns + selectedCell.x;
+          const index = selectedCell.x * columns + selectedCell.y;
           updatedGrid[index] = {
             plantId: pendingPlant.id,
             image: pendingPlant.image,
