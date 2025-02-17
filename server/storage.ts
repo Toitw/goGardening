@@ -1,7 +1,7 @@
 // server/storage.ts
 import { db } from "./db";
-import { users, gardens } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { users, gardens, journalEntries } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 
 async function getGardenById(id: number, userId: number) {
@@ -94,7 +94,6 @@ export const storage = {
     length: number;
     gridData: any[];
   }) {
-    console.log("Creating garden in storage with data:", data);
     const [garden] = await db
       .insert(gardens)
       .values({
@@ -113,29 +112,6 @@ export const storage = {
   },
 
   getGardenById,
-
-  async updateGarden(id: number, userId: number, gridData: any[]) {
-    const garden = await getGardenById(id, userId);
-    if (!garden) {
-      return null;
-    }
-    const [updatedGarden] = await db
-      .update(gardens)
-      .set({ gridData: JSON.stringify(gridData) })
-      .where(eq(gardens.id, id))
-      .returning();
-    // Parse gridData before returning.
-    if (updatedGarden && typeof updatedGarden.gridData === "string") {
-      try {
-        updatedGarden.gridData = JSON.parse(updatedGarden.gridData);
-      } catch (error) {
-        console.error("Error parsing updated garden gridData:", error);
-        updatedGarden.gridData = [];
-      }
-    }
-    return updatedGarden;
-  },
-
   updateGardenGridData,
 
   async deleteGarden(id: number, userId: number) {
@@ -144,5 +120,63 @@ export const storage = {
       .where(and(eq(gardens.id, id), eq(gardens.userId, userId)))
       .returning();
     return deletedGarden;
+  },
+
+  async createJournalEntry(data: {
+    userId: number;
+    title: string;
+    content: string;
+    type: string;
+    gardenId?: number;
+    plantId?: string;
+  }) {
+    const [entry] = await db
+      .insert(journalEntries)
+      .values(data)
+      .returning();
+    return entry;
+  },
+
+  async getJournalEntries(userId: number) {
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId))
+      .orderBy(desc(journalEntries.createdAt));
+  },
+
+  async getJournalEntry(id: number, userId: number) {
+    const [entry] = await db
+      .select()
+      .from(journalEntries)
+      .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)));
+    return entry;
+  },
+
+  async updateJournalEntry(
+    id: number,
+    userId: number,
+    data: {
+      title?: string;
+      content?: string;
+      type?: string;
+      gardenId?: number;
+      plantId?: string;
+    }
+  ) {
+    const [entry] = await db
+      .update(journalEntries)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)))
+      .returning();
+    return entry;
+  },
+
+  async deleteJournalEntry(id: number, userId: number) {
+    const [entry] = await db
+      .delete(journalEntries)
+      .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)))
+      .returning();
+    return entry;
   },
 };

@@ -2,7 +2,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGardenSchema } from "@shared/schema";
+import { insertGardenSchema, insertJournalEntrySchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
 
@@ -26,6 +26,76 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Journal Routes
+  app.get("/api/journal", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const { id } = req.user as any;
+      const entries = await storage.getJournalEntries(id);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching journal entries:", error);
+      res.status(500).json({ error: "Failed to fetch journal entries" });
+    }
+  });
+
+  app.post("/api/journal", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const { id: userId } = req.user as any;
+      const data = insertJournalEntrySchema.parse({ ...req.body, userId });
+      const entry = await storage.createJournalEntry(data);
+      res.json(entry);
+    } catch (error) {
+      console.error("Error creating journal entry:", error);
+      const message = error instanceof Error ? error.message : "Failed to create journal entry";
+      res.status(400).json({ error: message });
+    }
+  });
+
+  app.put("/api/journal/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const { id: userId } = req.user as any;
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.updateJournalEntry(entryId, userId, req.body);
+      if (!entry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      console.error("Error updating journal entry:", error);
+      const message = error instanceof Error ? error.message : "Failed to update journal entry";
+      res.status(400).json({ error: message });
+    }
+  });
+
+  app.delete("/api/journal/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const { id: userId } = req.user as any;
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.deleteJournalEntry(entryId, userId);
+      if (!entry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      console.error("Error deleting journal entry:", error);
+      const message = error instanceof Error ? error.message : "Failed to delete journal entry";
+      res.status(400).json({ error: message });
+    }
+  });
+
+  // Garden Routes
   app.post("/api/gardens", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -63,11 +133,6 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.get("/api/gardens/:id", async (req, res) => {
-    console.log("Garden fetch request:", {
-      params: req.params,
-      isAuthenticated: req.isAuthenticated(),
-      user: req.user,
-    });
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Not authenticated" });
     }
@@ -81,7 +146,6 @@ export function registerRoutes(app: Express): Server {
       if (!garden) {
         return res.status(404).json({ error: "Garden not found" });
       }
-      console.log("Fetched garden gridData:", garden.gridData);
       res.json(garden);
     } catch (error) {
       console.error("Error fetching garden:", error);
@@ -89,8 +153,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // New route to update a single cell in the garden grid.
-  // Expects: { x: number, y: number, plantData: { plantId: string, image: string, name: string } }
   app.patch("/api/gardens/:id/cell", async (req, res) => {
     try {
       const gardenId = parseInt(req.params.id);
@@ -99,28 +161,19 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Not authenticated" });
       }
       const { x, y, plantData } = req.body;
-      if (
-        x === undefined ||
-        y === undefined ||
-        !plantData ||
-        !plantData.plantId
-      ) {
-        return res
-          .status(400)
-          .json({ error: "Missing required fields: x, y, or plantData" });
+      if (x === undefined || y === undefined || !plantData || !plantData.plantId) {
+        return res.status(400).json({ error: "Missing required fields: x, y, or plantData" });
       }
       const garden = await storage.getGardenById(gardenId, userId);
       if (!garden) {
         return res.status(404).json({ error: "Garden not found" });
       }
-      // Use cell size 25 as in the front-end
       let gridData: any[] = garden.gridData || [];
       const cellSize = 25;
       const columns = Math.ceil(garden.width / cellSize);
       const index = x * columns + y;
       gridData[index] = plantData;
-      await storage.updateGarden(gardenId, userId, gridData);
-      console.log(`Updated cell at (${x}, ${y}) with plantData:`, plantData);
+      await storage.updateGardenGridData(gardenId, userId, gridData);
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating garden cell:", error);
@@ -128,66 +181,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.patch("/api/gardens/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-    try {
-      const { id: userId } = req.user as any;
-      const gardenId = parseInt(req.params.id);
-      console.log("Updating garden:", {
-        userId,
-        gardenId,
-        gridData: req.body.gridData,
-      });
-      const garden = await storage.updateGarden(
-        gardenId,
-        userId,
-        req.body.gridData,
-      );
-      if (!garden) {
-        return res.status(404).json({ error: "Garden not found" });
-      }
-      res.json(garden);
-    } catch (error) {
-      console.error("Garden update error:", error);
-      const message =
-        error instanceof Error ? error.message : "Failed to update garden";
-      res.status(400).json({ error: message });
-    }
-  });
-
-  app.delete("/api/gardens/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-    try {
-      const { id: userId } = req.user as any;
-      const gardenId = parseInt(req.params.id);
-      const deletedGarden = await storage.deleteGarden(gardenId, userId);
-      if (!deletedGarden) {
-        return res.status(404).json({ error: "Garden not found" });
-      }
-      res.json(deletedGarden);
-    } catch (error) {
-      console.error("Garden deletion error:", error);
-      const message =
-        error instanceof Error ? error.message : "Failed to delete garden";
-      res.status(400).json({ error: message });
-    }
-  });
-
-  app.delete("/api/users/test", async (req, res) => {
-    try {
-      await storage.deleteTestUsers();
-      res.json({ message: "Test users deleted successfully" });
-    } catch (error) {
-      console.error("Delete test users error:", error);
-      res.status(500).json({ error: "Failed to delete test users" });
-    }
-  });
-
-  // DELETE endpoint for removing a plant from a garden cell
   app.delete("/api/gardens/:id/cell", async (req, res) => {
     try {
       const gardenId = parseInt(req.params.id);
@@ -197,9 +190,7 @@ export function registerRoutes(app: Express): Server {
       }
       const { x, y } = req.body;
       if (x === undefined || y === undefined) {
-        return res
-          .status(400)
-          .json({ error: "Missing required fields: x or y" });
+        return res.status(400).json({ error: "Missing required fields: x or y" });
       }
       const garden = await storage.getGardenById(gardenId, userId);
       if (!garden) {
@@ -209,16 +200,12 @@ export function registerRoutes(app: Express): Server {
       const cellSize = 25;
       const columns = Math.ceil(garden.width / cellSize);
       const index = x * columns + y;
-      // Remove the plant by setting the cell to null
       gridData[index] = null;
-      await storage.updateGarden(gardenId, userId, gridData);
-      console.log(`Deleted plant from cell at (${x}, ${y})`);
+      await storage.updateGardenGridData(gardenId, userId, gridData);
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting plant from garden cell:", error);
-      res
-        .status(500)
-        .json({ error: "Failed to delete plant from garden cell" });
+      res.status(500).json({ error: "Failed to delete plant from garden cell" });
     }
   });
 

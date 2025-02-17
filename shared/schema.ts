@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -18,6 +18,18 @@ export const gardens = pgTable("gardens", {
   width: integer("width").notNull(),
   length: integer("length").notNull(),
   gridData: jsonb("grid_data").notNull(),
+});
+
+export const journalEntries = pgTable("journal_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  gardenId: integer("garden_id"),
+  plantId: text("plant_id"),
+  type: text("type").notNull(), // 'observation', 'task', 'note'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -47,6 +59,25 @@ export const insertUserSchema = createInsertSchema(users).pick({
   sunlightHours: z.number().min(0).max(24),
 });
 
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).pick({
+  userId: true,
+  title: true,
+  content: true,
+  gardenId: true,
+  plantId: true,
+  type: true,
+}).extend({
+  title: z.string()
+    .min(1, "Title is required")
+    .max(100, "Title cannot exceed 100 characters"),
+  content: z.string()
+    .min(1, "Content is required")
+    .max(2000, "Content cannot exceed 2000 characters"),
+  type: z.enum(["observation", "task", "note"]),
+  gardenId: z.number().optional(),
+  plantId: z.string().optional(),
+});
+
 export const insertGardenSchema = createInsertSchema(gardens).pick({
   userId: true,
   name: true,
@@ -63,6 +94,8 @@ export const locationSchema = z.object({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertGarden = z.infer<typeof insertGardenSchema>;
+export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 export type User = typeof users.$inferSelect;
 export type Garden = typeof gardens.$inferSelect;
+export type JournalEntry = typeof journalEntries.$inferSelect;
 export type Location = z.infer<typeof locationSchema>;
