@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import Garden from "@/pages/garden";
 import Plants from "@/pages/plants";
 import Settings from "@/pages/settings";
+import Journal from "@/pages/journal";
 import Onboarding from "@/pages/onboarding";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -26,7 +27,6 @@ function Router() {
           const location = useLocation()[0];
           const { user } = useAuth();
 
-          // Redirect to garden if user has already completed onboarding
           if (user?.gardenSpace && location === "/onboarding") {
             return <Redirect to="/garden" />;
           }
@@ -34,67 +34,57 @@ function Router() {
           return <Onboarding />;
         }}
       />
-      <ProtectedRoute
-        path="/garden/new"
-        component={() => {
-          const { user } = useAuth();
-          const [Component, setComponent] =
-            React.useState<React.ComponentType | null>(null);
+      <ProtectedRoute path="/garden/new" component={() => {
+        const { user } = useAuth();
+        const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
 
-          React.useEffect(() => {
-            import("./pages/garden/new").then((module) => {
-              setComponent(() => module.default);
-            });
-          }, []);
+        React.useEffect(() => {
+          import("./pages/garden/new").then((module) => {
+            setComponent(() => module.default);
+          });
+        }, []);
 
-          if (!user?.gardenSpace) {
-            return <Redirect to="/onboarding" />;
-          }
+        if (!user?.gardenSpace) {
+          return <Redirect to="/onboarding" />;
+        }
 
-          if (!Component) {
-            return <div>Loading...</div>;
-          }
+        if (!Component) {
+          return <div>Loading...</div>;
+        }
 
-          return <Component />;
-        }}
-      />
-      <ProtectedRoute
-        path="/garden"
-        component={() => {
-          const { user } = useAuth();
+        return <Component />;
+      }} />
+      <ProtectedRoute path="/garden" component={() => {
+        const { user } = useAuth();
 
-          if (!user?.gardenSpace) {
-            return <Redirect to="/onboarding" />;
-          }
+        if (!user?.gardenSpace) {
+          return <Redirect to="/onboarding" />;
+        }
 
-          return <Garden />;
-        }}
-      />
-      <ProtectedRoute
-        path="/garden/:id"
-        component={() => {
-          const { user } = useAuth();
-          const [Component, setComponent] =
-            React.useState<React.ComponentType | null>(null);
+        return <Garden />;
+      }} />
+      <ProtectedRoute path="/garden/:id" component={() => {
+        const { user } = useAuth();
+        const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
 
-          React.useEffect(() => {
-            import("./pages/garden/[id]").then((module) => {
-              setComponent(() => module.default);
-            });
-          }, []);
+        React.useEffect(() => {
+          import("./pages/garden/[id]").then((module) => {
+            setComponent(() => module.default);
+          });
+        }, []);
 
-          if (!user?.gardenSpace) {
-            return <Redirect to="/onboarding" />;
-          }
+        if (!user?.gardenSpace) {
+          return <Redirect to="/onboarding" />;
+        }
 
-          if (!Component) {
-            return <div>Loading...</div>;
-          }
+        if (!Component) {
+          return <div>Loading...</div>;
+        }
 
-          return <Component />;
-        }}
-      />
+        return <Component />;
+      }} />
       <ProtectedRoute path="/plants" component={Plants} />
+      <ProtectedRoute path="/journal" component={Journal} />
       <ProtectedRoute path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
