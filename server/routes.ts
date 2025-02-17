@@ -2,28 +2,43 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGardenSchema, insertJournalEntrySchema } from "@shared/schema";
+import { insertJournalEntrySchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import express from 'express';
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      const uploadDir = path.join(process.cwd(), "uploads");
+      if (!fs.existsSync(uploadDir)){
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  })
+});
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
 
-  app.post("/api/users/onboarding", async (req, res) => {
-    try {
-      const { id } = req.user as any;
-      const { location, gardenSpace, sunlightHours } = req.body;
-      const updatedUser = await storage.updateUser(id, {
-        location,
-        gardenSpace,
-        sunlightHours: Number(sunlightHours),
-      });
-      res.json(updatedUser);
-    } catch (error: any) {
-      console.error("Onboarding error:", error);
-      const message = error.message || "Failed to save onboarding data";
-      res.status(400).json({ error: message });
+  // Serve uploaded files
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+  // Image upload endpoint
+  app.post("/api/upload", upload.single('image'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
     }
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ imageUrl });
   });
 
   // Journal Routes

@@ -28,6 +28,7 @@ export const journalEntries = pgTable("journal_entries", {
   gardenId: integer("garden_id"),
   plantId: text("plant_id"),
   type: text("type").notNull(), // 'observation', 'task', 'note'
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -66,6 +67,7 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).pick(
   gardenId: true,
   plantId: true,
   type: true,
+  imageUrl: true,
 }).extend({
   title: z.string()
     .min(1, "Title is required")
@@ -76,6 +78,7 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).pick(
   type: z.enum(["observation", "task", "note"]),
   gardenId: z.number().optional(),
   plantId: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 export const insertGardenSchema = createInsertSchema(gardens).pick({
