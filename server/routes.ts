@@ -117,7 +117,7 @@ export function registerRoutes(app: Express): Server {
       let gridData: any[] = garden.gridData || [];
       const cellSize = 25;
       const columns = Math.ceil(garden.width / cellSize);
-      const index = y * columns + x;
+      const index = x * columns + y;
       gridData[index] = plantData;
       await storage.updateGarden(gardenId, userId, gridData);
       console.log(`Updated cell at (${x}, ${y}) with plantData:`, plantData);
@@ -184,6 +184,41 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Delete test users error:", error);
       res.status(500).json({ error: "Failed to delete test users" });
+    }
+  });
+
+  // DELETE endpoint for removing a plant from a garden cell
+  app.delete("/api/gardens/:id/cell", async (req, res) => {
+    try {
+      const gardenId = parseInt(req.params.id);
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const { x, y } = req.body;
+      if (x === undefined || y === undefined) {
+        return res
+          .status(400)
+          .json({ error: "Missing required fields: x or y" });
+      }
+      const garden = await storage.getGardenById(gardenId, userId);
+      if (!garden) {
+        return res.status(404).json({ error: "Garden not found" });
+      }
+      let gridData: any[] = garden.gridData || [];
+      const cellSize = 25;
+      const columns = Math.ceil(garden.width / cellSize);
+      const index = x * columns + y;
+      // Remove the plant by setting the cell to null
+      gridData[index] = null;
+      await storage.updateGarden(gardenId, userId, gridData);
+      console.log(`Deleted plant from cell at (${x}, ${y})`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting plant from garden cell:", error);
+      res
+        .status(500)
+        .json({ error: "Failed to delete plant from garden cell" });
     }
   });
 

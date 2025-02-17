@@ -32,6 +32,14 @@ export function PlantSelectionDialog({
     plant.name.toLowerCase().includes(search.toLowerCase()),
   );
 
+  // Normalize image URL:
+  const normalizeImageUrl = (url: string) => {
+    // If url already starts with "http" then assume it is absolute.
+    if (url.startsWith("http")) return url;
+    // Otherwise, use the OpenFarm base URL.
+    return `https://openfarm.cc${url}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-screen-sm max-h-[80vh] overflow-y-auto">
@@ -47,24 +55,30 @@ export function PlantSelectionDialog({
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredPlants.map((plant) => (
-              <div
-                key={plant.id}
-                onClick={() => {
-                  onSelectPlant(plant);
-                  // Do not close here; let the confirmation dialog handle that.
-                }}
-                className="cursor-pointer"
-              >
-                <PlantCard
-                  name={plant.name}
-                  image={plant.image}
-                  sunlight="Unknown"
-                  water="Unknown"
-                  description=""
-                />
-              </div>
-            ))}
+            {filteredPlants.map((plant) => {
+              const absoluteImage = normalizeImageUrl(plant.image);
+              return (
+                <div
+                  key={plant.id}
+                  onClick={() => {
+                    onSelectPlant({
+                      ...plant,
+                      image: absoluteImage,
+                    });
+                    // Do not close immediately so that the parent can show confirmation.
+                  }}
+                  className="cursor-pointer"
+                >
+                  <PlantCard
+                    name={plant.name}
+                    image={absoluteImage}
+                    sunlight="Unknown"
+                    water="Unknown"
+                    description=""
+                  />
+                </div>
+              );
+            })}
           </div>
           <div className="mt-4 flex justify-end">
             <Button variant="ghost" onClick={onClose}>
