@@ -52,13 +52,15 @@ export default function Onboarding() {
         ...data,
         sunlightHours: Number(data.sunlightHours),
       });
-
+      
+      // Invalidate and refetch user data
+      await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
       toast({
         title: "Success",
         description: "Garden setup completed",
       });
 
-      // Force redirection
       setLocation("/garden");
     } catch (error: any) {
       const errorMessage = error.message || "Failed to complete setup";
