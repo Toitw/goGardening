@@ -56,13 +56,14 @@ export default function Onboarding() {
       
       // Invalidate and refetch user data
       await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/user"] });
       
       toast({
         title: "Success",
         description: "Garden setup completed",
       });
 
-      setLocation("/garden");
+      window.location.href = "/garden";
     } catch (error: any) {
       const errorMessage = error.message || "Failed to complete setup";
       toast({

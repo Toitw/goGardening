@@ -32,6 +32,28 @@ export function registerRoutes(app: Express): Server {
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+
+  // Onboarding route
+  app.post("/api/users/onboarding", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const { id: userId } = req.user as any;
+      const { location, gardenSpace, sunlightHours } = req.body;
+      const updatedUser = await storage.updateUser(userId, {
+        location,
+        gardenSpace,
+        sunlightHours
+      });
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+
   // Image upload endpoint
   app.post("/api/upload", upload.single('image'), (req, res) => {
     if (!req.file) {
