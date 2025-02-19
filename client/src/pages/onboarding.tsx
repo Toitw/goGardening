@@ -33,17 +33,18 @@ export default function Onboarding() {
 
   const onSubmit = async (data: any) => {
     try {
-      const response = await apiRequest("POST", "/api/users/onboarding", {
+      await apiRequest("POST", "/api/users/onboarding", {
         ...data,
         sunlightHours: Number(data.sunlightHours),
       });
-      if (response) {
-        toast({
-          title: "Success",
-          description: "Garden setup completed",
-        });
-        setTimeout(() => setLocation("/garden"), 500);
-      }
+      
+      toast({
+        title: "Success",
+        description: "Garden setup completed",
+      });
+      
+      // Force redirection
+      window.location.href = "/garden";
     } catch (error: any) {
       const errorMessage = error.message || "Failed to complete setup";
       toast({
