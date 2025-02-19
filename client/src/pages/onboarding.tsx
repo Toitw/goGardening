@@ -49,21 +49,27 @@ export default function Onboarding() {
 
   const onSubmit = async (data: any) => {
     try {
-      await apiRequest("POST", "/api/users/onboarding", {
+      const response = await apiRequest("POST", "/api/users/onboarding", {
         ...data,
         sunlightHours: Number(data.sunlightHours),
       });
       
-      // Invalidate and refetch user data
-      await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/user"] });
+      // Start query invalidation but don't wait for it
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Update user data in cache directly
+      queryClient.setQueryData(["/api/user"], (oldData: any) => ({
+        ...oldData,
+        ...response,
+      }));
       
       toast({
         title: "Success",
         description: "Garden setup completed",
       });
 
-      window.location.href = "/garden";
+      // Redirect immediately
+      setLocation("/garden");
     } catch (error: any) {
       const errorMessage = error.message || "Failed to complete setup";
       toast({
